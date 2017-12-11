@@ -11,6 +11,8 @@ Model the rate
 -   We use `R_CENT` to model the infusion rate into the `CENT`ral
     compartment
 -   The nonmem equivalent for this example would be `R1`
+-   Like nonmem, we use `rate = -1` to indicate that the rate is
+    determined in the model
 
 ``` r
 code <- '
@@ -41,6 +43,8 @@ Model the duration
 -   We use `D_CENT` to model the infusion duration into the `CENT`ral
     compartment
 -   The nonmem equivalent for this example would be `D1`
+-   Like nonmem, we use `rate = -2` to indicate that the duration is
+    determined in the model
 
 ``` r
 code <- '
