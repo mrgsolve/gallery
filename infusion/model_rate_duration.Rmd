@@ -35,13 +35,11 @@ $PKMODEL cmt = "CENT"
 
 
 ```{r}
-mod <- mcode("model_rate", code) %>% 
-  update(end = 120, delta = 0.1)
+mod <- mcode("model_rate", code) %>% update(end = 120, delta = 0.1)
 ```
 
 ```{r}
-mod %>% ev(amt = 100, rate = -1) %>% 
-  mrgsim %>% plot
+mod %>% ev(amt = 100, rate = -1) %>% mrgsim %>% plot
 ```
 
 
@@ -67,13 +65,11 @@ $PKMODEL cmt = "CENT"
 
 
 ```{r}
-mod <- mcode("model_duration", code) %>% 
-  update(end = 120, delta = 0.1)
+mod <- mcode("model_duration", code) %>% update(end = 120, delta = 0.1)
 ```
 
 ```{r}
-mod %>% ev(amt = 100, rate = -2) %>% 
-  mrgsim %>% plot
+mod %>% ev(amt = 100, rate = -2) %>% mrgsim %>% plot
 ```
 
 
