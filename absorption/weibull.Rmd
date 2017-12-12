@@ -18,7 +18,7 @@ library(tidyverse)
 ```{r}
 code <- '
 $PARAM CL = 5, VC = 50, KA = 0.4, GUTBIOAV = 1, GUTLAGT=0, GAMA=4
-BIOAV = 1, LAGT = 0, MODE = 0, DUR2 = 2, RAT2 = 10
+BIOAV = 1, LAGT = 0
 
 $CMT GUT CENT
 
@@ -35,11 +35,7 @@ ALAG_GUT = GUTLAGT;
 F_CENT = BIOAV;
 ALAG_CENT = LAGT;
 
-if(MODE==1) R_CENT = RAT2;
-if(MODE==2) D_CENT = DUR2;
-
 $ODE
-
 dxdt_GUT = -WB*GUT;
 dxdt_CENT = WB*GUT - (CL/VC)*CENT;
 

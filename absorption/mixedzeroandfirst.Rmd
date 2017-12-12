@@ -55,6 +55,5 @@ mod <- update(mod, end=72)
 ev2 <- ev(ID=1,amt = 10, time=0, cmt=1) + ev(ID=1,time = 0, amt = 10, cmt=2, rate=-2, MODE=2)
 out <- mod %>% Req(GUT, CENT, CP) %>% mrgsim(ev2)
 plot(out)
-
 ```
 
