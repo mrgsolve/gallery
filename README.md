@@ -4,4 +4,6 @@
   - [Zero-/first-order absorption](absorption/sequential.md)
 - [Infusion](infusion/README.md)
   - [Modeling rate and duration](infusion/model_rate_duration.md)
+- [Population modeling](population/README.md)
+  - [Mixture models](population/mixture.md)
 
