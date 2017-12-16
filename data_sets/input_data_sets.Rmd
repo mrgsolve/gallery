@@ -16,6 +16,7 @@ library(dplyr)
 
 
 ## Input data sets
+
 An important mechanism for creating robust, complex simulations is
 the input data set.  Input data sets specify the population 
 of individuals to simulate, including the number of individuals,
@@ -30,8 +31,9 @@ to mix upper and lower case names (like `time` and `CMT`) for certain
 column names related to dosing events.  The help topic `?data_set` 
 discusses more about what the expectations are for input data sets.
 
-<hr>
+
 ## Functions to generate input data sets
+
 `mrgsolve` provides several functions and workflows to help you 
 put together the right input data set for your simulation. The main point 
 of this blog post is to review some of these functions to help you 
@@ -42,7 +44,8 @@ accomplish tasks that we found ourselves repeating over and over ... and
 thus these tasks were formalized in a function.  Just keep in mind 
 that input data sets are just `data.frames` ... you can use any code 
 or any function (even your own!) to do tasks similar to what these functions are doing.
-<hr>
+
+
 ### `expand.ev`
 
 `expand.ev` is like `expand.grid`: it creates a single `data.frame` with all
@@ -69,7 +72,7 @@ mod %>%
   plot(CP~time|factor(ID),scales="same")
 ```
 
-<hr>
+
 ### `as_data_set`
 This function allows you to combine several event objects into a single data sets.  An example works best to illustrate.
 
@@ -133,7 +136,7 @@ mod %>%
   mrgsim() %>% 
   plot
 ```
-<hr>
+
 ### `as.data.frame.ev`
 Just a quick reminder here that you can easily convert between 
 a single event object and a `data.frame`
@@ -146,7 +149,7 @@ So if you were building up an event object and just wanted to
 use it as a `data_set` or as a building block for a `data_set`, just
 coerce with `as.data.frame`.
 
-<hr>
+
 ### `assign_ev`
 This function assigns an intervention in the form of an event object
 to individuals in an `idata_set` according to a grouping column.
@@ -173,7 +176,6 @@ it up a bit here to try to illustrate how things are assigned.
 
 
 
-<hr>
 ### `ev_days`
 This is a recently-added function (hint: you might need to install the latest
 version from GitHub to use this) that lets you schedule certain events on certain

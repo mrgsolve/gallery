@@ -11,12 +11,11 @@ Input data sets
 
 An important mechanism for creating robust, complex simulations is the input data set. Input data sets specify the population of individuals to simulate, including the number of individuals, each individual's dosing interventions, each individual's covariate values etc. The input data set is just a plain old `R` `data.frame`, but with some expectations about which columns are present and expectations for how to handle columns for certain names. For example, every input data set has to have an `ID`, `time`, and `cmt` column. Note that either lower case names (like `time` and `cmt`) are acceptable as are upper case names (like `TIME` and `CMT`). But users are not to mix upper and lower case names (like `time` and `CMT`) for certain column names related to dosing events. The help topic `?data_set` discusses more about what the expectations are for input data sets.
 
-<hr>
 Functions to generate input data sets
 -------------------------------------
 
 `mrgsolve` provides several functions and workflows to help you put together the right input data set for your simulation. The main point of this blog post is to review some of these functions to help you better organize your `mrgsolve` simulations. Some functions are very simple and you might not find a function to do **exactly** what you want to do. But we've found these functions to be helpful to accomplish tasks that we found ourselves repeating over and over ... and thus these tasks were formalized in a function. Just keep in mind that input data sets are just `data.frames` ... you can use any code or any function (even your own!) to do tasks similar to what these functions are doing.
-<hr>
+
 ### `expand.ev`
 
 `expand.ev` is like `expand.grid`: it creates a single `data.frame` with all combinations of it's vector arguments. It's pretty simple but convenient to have. For example,
@@ -52,7 +51,6 @@ mod %>%
 
 ![](img/input_data_sets-unnamed-chunk-4-1.png)
 
-<hr>
 ### `as_data_set`
 
 This function allows you to combine several event objects into a single data sets. An example works best to illustrate.
@@ -179,7 +177,7 @@ mod %>%
 ```
 
 ![](img/input_data_sets-unnamed-chunk-13-1.png)
-<hr>
+
 ### `as.data.frame.ev`
 
 Just a quick reminder here that you can easily convert between a single event object and a `data.frame`
@@ -211,7 +209,6 @@ as.ev(as.data.frame(e3))
 
 So if you were building up an event object and just wanted to use it as a `data_set` or as a building block for a `data_set`, just coerce with `as.data.frame`.
 
-<hr>
 ### `assign_ev`
 
 This function assigns an intervention in the form of an event object to individuals in an `idata_set` according to a grouping column.
@@ -259,7 +256,6 @@ assign_ev(list(e3,e2,e1),idata,"arm")
 
 Please look carefully at the input (`idata` and `list(e3,e2,e1)`); I have mixed it up a bit here to try to illustrate how things are assigned.
 
-<hr>
 ### `ev_days`
 
 This is a recently-added function (hint: you might need to install the latest version from GitHub to use this) that lets you schedule certain events on certain days of the week, repeating in a weekly cycle.

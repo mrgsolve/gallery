@@ -67,26 +67,26 @@ system.time({
 ```
 
     .    user  system elapsed 
-    .   0.010   0.001   0.014
+    .   0.010   0.000   0.012
 
 ``` r
 print(sum)
 ```
 
-    .        ID              time      RESPONSE          EBASE         
-    .  Min.   :  1.00   Min.   :0   Min.   : 10.96   Min.   :-2.21128  
-    .  1st Qu.: 25.75   1st Qu.:0   1st Qu.: 55.25   1st Qu.:-0.59340  
-    .  Median : 50.50   Median :0   Median :104.56   Median : 0.04464  
-    .  Mean   : 50.50   Mean   :0   Mean   :168.07   Mean   : 0.08482  
-    .  3rd Qu.: 75.25   3rd Qu.:0   3rd Qu.:242.55   3rd Qu.: 0.88605  
-    .  Max.   :100.00   Max.   :0   Max.   :914.65   Max.   : 2.21337  
-    .       BASE       
-    .  Min.   : 10.96  
-    .  1st Qu.: 55.25  
-    .  Median :104.56  
-    .  Mean   :168.07  
-    .  3rd Qu.:242.55  
-    .  Max.   :914.65
+    .        ID              time      RESPONSE           EBASE         
+    .  Min.   :  1.00   Min.   :0   Min.   :  9.047   Min.   :-2.40270  
+    .  1st Qu.: 25.75   1st Qu.:0   1st Qu.: 40.958   1st Qu.:-0.89264  
+    .  Median : 50.50   Median :0   Median : 97.555   Median :-0.02637  
+    .  Mean   : 50.50   Mean   :0   Mean   :147.628   Mean   :-0.07915  
+    .  3rd Qu.: 75.25   3rd Qu.:0   3rd Qu.:163.394   3rd Qu.: 0.49093  
+    .  Max.   :100.00   Max.   :0   Max.   :763.956   Max.   : 2.03334  
+    .       BASE        
+    .  Min.   :  9.047  
+    .  1st Qu.: 40.958  
+    .  Median : 97.555  
+    .  Mean   :147.628  
+    .  3rd Qu.:163.394  
+    .  Max.   :763.956
 
 When we simulate with `FLAG=0`, the `simeta` code **isn't** called and we `BASE` values all over the place.
 
@@ -100,26 +100,26 @@ system.time({
 ```
 
     .    user  system elapsed 
-    .   0.102   0.005   0.108
+    .   0.117   0.004   0.123
 
 ``` r
 print(sum)
 ```
 
     .        ID              time      RESPONSE          EBASE         
-    .  Min.   :  1.00   Min.   :0   Min.   : 80.11   Min.   :-0.22175  
-    .  1st Qu.: 25.75   1st Qu.:0   1st Qu.: 88.56   1st Qu.:-0.12147  
-    .  Median : 50.50   Median :0   Median : 98.66   Median :-0.01345  
-    .  Mean   : 50.50   Mean   :0   Mean   : 98.92   Mean   :-0.01713  
-    .  3rd Qu.: 75.25   3rd Qu.:0   3rd Qu.:108.45   3rd Qu.: 0.08115  
-    .  Max.   :100.00   Max.   :0   Max.   :119.78   Max.   : 0.18047  
+    .  Min.   :  1.00   Min.   :0   Min.   : 80.10   Min.   :-0.22191  
+    .  1st Qu.: 25.75   1st Qu.:0   1st Qu.: 86.11   1st Qu.:-0.14955  
+    .  Median : 50.50   Median :0   Median : 96.84   Median :-0.03212  
+    .  Mean   : 50.50   Mean   :0   Mean   : 97.96   Mean   :-0.02843  
+    .  3rd Qu.: 75.25   3rd Qu.:0   3rd Qu.:108.15   3rd Qu.: 0.07834  
+    .  Max.   :100.00   Max.   :0   Max.   :119.80   Max.   : 0.18062  
     .       BASE       
-    .  Min.   : 80.11  
-    .  1st Qu.: 88.56  
-    .  Median : 98.66  
-    .  Mean   : 98.92  
-    .  3rd Qu.:108.45  
-    .  Max.   :119.78
+    .  Min.   : 80.10  
+    .  1st Qu.: 86.11  
+    .  Median : 96.84  
+    .  Mean   : 97.96  
+    .  3rd Qu.:108.15  
+    .  Max.   :119.80
 
 When we simulate with `FLAG=1`, the `simeta` code **is** called and we `BASE` values within the specified bounds.
 
@@ -166,19 +166,19 @@ system.time({
 ```
 
     .    user  system elapsed 
-    .   0.008   0.001   0.012
+    .   0.010   0.001   0.012
 
 ``` r
 print(sum)
 ```
 
     .        ID         time            CENT              CP         
-    .  Min.   :1   Min.   : 0.00   Min.   :  0.00   Min.   :-21.477  
-    .  1st Qu.:1   1st Qu.:11.25   1st Qu.: 15.93   1st Qu.: -5.464  
-    .  Median :1   Median :23.50   Median : 29.38   Median :  2.901  
-    .  Mean   :1   Mean   :23.52   Mean   : 37.47   Mean   :  0.224  
-    .  3rd Qu.:1   3rd Qu.:35.75   3rd Qu.: 54.21   3rd Qu.:  6.046  
-    .  Max.   :1   Max.   :48.00   Max.   :100.00   Max.   : 18.789
+    .  Min.   :1   Min.   : 0.00   Min.   :  0.00   Min.   :-13.215  
+    .  1st Qu.:1   1st Qu.:11.25   1st Qu.: 15.93   1st Qu.: -2.857  
+    .  Median :1   Median :23.50   Median : 29.38   Median :  2.738  
+    .  Mean   :1   Mean   :23.52   Mean   : 37.47   Mean   :  2.478  
+    .  3rd Qu.:1   3rd Qu.:35.75   3rd Qu.: 54.21   3rd Qu.:  7.746  
+    .  Max.   :1   Max.   :48.00   Max.   :100.00   Max.   : 16.567
 
 **Negative** concentrations are simulated when we **don't** call the `simeps` loop.
 
@@ -192,18 +192,18 @@ system.time({
 ```
 
     .    user  system elapsed 
-    .   0.048   0.003   0.052
+    .   0.050   0.003   0.055
 
 ``` r
 print(sum)
 ```
 
-    .        ID         time            CENT              CP         
-    .  Min.   :1   Min.   : 0.00   Min.   :  0.00   Min.   : 0.2136  
-    .  1st Qu.:1   1st Qu.:11.25   1st Qu.: 15.93   1st Qu.: 2.1379  
-    .  Median :1   Median :23.50   Median : 29.38   Median : 4.7224  
-    .  Mean   :1   Mean   :23.52   Mean   : 37.47   Mean   : 5.4664  
-    .  3rd Qu.:1   3rd Qu.:35.75   3rd Qu.: 54.21   3rd Qu.: 8.7779  
-    .  Max.   :1   Max.   :48.00   Max.   :100.00   Max.   :16.5729
+    .        ID         time            CENT              CP          
+    .  Min.   :1   Min.   : 0.00   Min.   :  0.00   Min.   : 0.08326  
+    .  1st Qu.:1   1st Qu.:11.25   1st Qu.: 15.93   1st Qu.: 3.56431  
+    .  Median :1   Median :23.50   Median : 29.38   Median : 5.72780  
+    .  Mean   :1   Mean   :23.52   Mean   : 37.47   Mean   : 6.61531  
+    .  3rd Qu.:1   3rd Qu.:35.75   3rd Qu.: 54.21   3rd Qu.: 8.65682  
+    .  Max.   :1   Max.   :48.00   Max.   :100.00   Max.   :22.17507
 
 Better ... all concentrations are positive.
