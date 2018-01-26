@@ -4,12 +4,8 @@ Simulate from bootstrap estimates
 -   [Load an example model](#load-an-example-model)
 -   [Example bootstrap output](#example-bootstrap-output)
 -   [Helper functions for matrices](#helper-functions-for-matrices)
-    -   [Create single `$OMEGA` matrix](#create-single-omega-matrix)
     -   [Create a list of `$OMEGA` and `$SIGMA` matrices](#create-a-list-of-omega-and-sigma-matrices)
 -   [Simulate](#simulate)
-    -   [Update the parameters](#update-the-parameters)
-    -   [Upate the matrices](#upate-the-matrices)
-    -   [Simulation loop](#simulation-loop)
 -   [Simulate with only uncertainty in the `THETA`s](#simulate-with-only-uncertainty-in-the-thetas)
 -   [Session Info](#session-info)
 
@@ -27,6 +23,40 @@ You can see the model source [here](bootstrap.cpp)
 ``` r
 mod <- mread("bootstrap")
 ```
+
+We have `THETA1`, `THETA2`, and `THETA3` in `$PARAM`
+
+``` r
+param(mod)
+```
+
+    . 
+    .  Model parameters (N=4):
+    .  name   value . name   value
+    .  THETA1 1     | THETA3 0.5  
+    .  THETA2 24    | WT     70
+
+We have a 3x3 `$OMEGA` matrix
+
+``` r
+omat(mod)
+```
+
+    . $...
+    .       [,1] [,2] [,3]
+    . ECL:   0.3  0.0  0.0
+    . EV:    0.0  0.1  0.0
+    . EKA:   0.0  0.0  0.5
+
+and a 1x1 `$SIGMA` matrix
+
+``` r
+smat(mod)
+```
+
+    . $...
+    .     [,1]
+    . 1:     0
 
 Example bootstrap output
 ========================
@@ -60,44 +90,10 @@ I know that PsN can return these data in a different order. I don't know enough 
 Helper functions for matrices
 =============================
 
-Create single `$OMEGA` matrix
------------------------------
-
-This creates a matrix from data in the first row where the name contains `OMEGA`
-
-``` r
-as_bmat(exBoot[1,], "OMEGA")
-```
-
-    . [[1]]
-    .         [,1]     [,2]     [,3]
-    . [1,] 0.12860  0.04613  0.13820
-    . [2,] 0.04613  0.28740 -0.02164
-    . [3,] 0.13820 -0.02164  0.39330
-
-If you have to code something by hand, these might help
-
-``` r
-bmat(c(1,2,3))
-```
-
-    .      [,1] [,2]
-    . [1,]    1    2
-    . [2,]    2    3
-
-``` r
-dmat(c(1,2,3))
-```
-
-    .      [,1] [,2] [,3]
-    . [1,]    1    0    0
-    . [2,]    0    2    0
-    . [3,]    0    0    3
-
 Create a list of `$OMEGA` and `$SIGMA` matrices
 -----------------------------------------------
 
-Create a list of `OMEGA` matrices
+Create a list of `OMEGA` matrices; the function looks for column names in `exBoot` that contains `OMEGA`
 
 ``` r
 omegas <- as_bmat(exBoot, "OMEGA")
@@ -118,6 +114,18 @@ length(omegas)
 
     . [1] 100
 
+You can also just go after a single row
+
+``` r
+as_bmat(exBoot[1,], "OMEGA")
+```
+
+    . [[1]]
+    .         [,1]     [,2]     [,3]
+    . [1,] 0.12860  0.04613  0.13820
+    . [2,] 0.04613  0.28740 -0.02164
+    . [3,] 0.13820 -0.02164  0.39330
+
 Do this for `SIGMA` too; I only had one `EPS` in the simulation model, so I'm going to look for `SIGMA11` only to get a 1x1 matrix
 
 ``` r
@@ -132,48 +140,9 @@ sigmas[[10]]
 Simulate
 ========
 
-Update the parameters
----------------------
-
-The `param` call scrapes the `THETA`s from `exBoot`; this works because `THETA1`, `THETA2`, and `THETA3` are listed in `$PARAM`
-
-``` r
-param(mod)
-```
-
-    . 
-    .  Model parameters (N=4):
-    .  name   value . name   value
-    .  THETA1 1     | THETA3 0.5  
-    .  THETA2 24    | WT     70
-
-Upate the matrices
-------------------
-
-Use `omat` to update the `$OMEGA` matrix; this works because `$OMEGA` is a 3x3 matrix
-
-``` r
-omat(mod)
-```
-
-    . $...
-    .       [,1] [,2] [,3]
-    . ECL:   0.3  0.0  0.0
-    . EV:    0.0  0.1  0.0
-    . EKA:   0.0  0.0  0.5
-
-Use `smat` to update the `$SIGMA` matrix
-
-``` r
-smat(mod)
-```
-
-    . $...
-    .     [,1]
-    . 1:     0
-
-Simulation loop
----------------
+1.  The `param` call scrapes the `THETA`s from `exBoot`; this works because `THETA1`, `THETA2`, and `THETA3` are listed in `$PARAM`
+2.  Use `omat` to update the `$OMEGA` matrix; this works because `$OMEGA` is a 3x3 matrix
+3.  Use `smat` to update the `$SIGMA` matrix
 
 ``` r
 set.seed(222)
@@ -195,7 +164,7 @@ out <- lapply(1:10, function(i) {
 ggplot(out, aes(time,DV,group=rep)) + geom_line()
 ```
 
-![](img/bootstrap-unnamed-chunk-15-1.png)
+![](img/bootstrap-unnamed-chunk-14-1.png)
 
 Simulate with only uncertainty in the `THETA`s
 ==============================================
@@ -221,7 +190,7 @@ out <- lapply(1:10, function(i) {
 ggplot(out, aes(time,DV,group=rep)) + geom_line()
 ```
 
-![](img/bootstrap-unnamed-chunk-17-1.png)
+![](img/bootstrap-unnamed-chunk-16-1.png)
 
 Session Info
 ============

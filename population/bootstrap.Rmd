@@ -26,6 +26,23 @@ You can see the model source [here](bootstrap.cpp)
 mod <- mread("bootstrap")
 ```
 
+We have `THETA1`, `THETA2`, and `THETA3` in `$PARAM`
+
+```{r}
+param(mod)
+```
+
+We have a 3x3 `$OMEGA` matrix
+```{r}
+omat(mod)
+```
+
+and a 1x1 `$SIGMA` matrix
+```{r}
+smat(mod)
+```
+
+
 # Example bootstrap output
 
 The example assumes that the different estimates are in 
@@ -60,25 +77,10 @@ output so we could automate.
 
 # Helper functions for matrices
 
-## Create single `$OMEGA` matrix
-
-This creates a matrix from data in the 
-first row where the name contains `OMEGA`
-```{r}
-as_bmat(exBoot[1,], "OMEGA")
-```
-
-If you have to code something by hand, these might help
-```{r}
-bmat(c(1,2,3))
-
-dmat(c(1,2,3))
-```
-
-
 ## Create a list of `$OMEGA` and `$SIGMA` matrices
 
-Create a list of `OMEGA` matrices
+Create a list of `OMEGA` matrices; the function looks for column
+names in `exBoot` that contains `OMEGA`
 ```{r}
 omegas <- as_bmat(exBoot, "OMEGA")
 ```
@@ -89,6 +91,11 @@ omegas[[10]]
 
 ```{r}
 length(omegas)
+```
+
+You can also just go after a single row
+```{r}
+as_bmat(exBoot[1,], "OMEGA")
 ```
 
 
@@ -103,32 +110,11 @@ sigmas[[10]]
 
 # Simulate
 
-## Update the parameters
-
-The `param` call scrapes the `THETA`s from `exBoot`; this works
+1.  The `param` call scrapes the `THETA`s from `exBoot`; this works
 because `THETA1`, `THETA2`, and `THETA3` are listed in `$PARAM`
-```{r}
-param(mod)
-```
-
-## Upate the matrices
-
-Use `omat` to update the `$OMEGA` matrix; this works because
+1.  Use `omat` to update the `$OMEGA` matrix; this works because
 `$OMEGA` is a 3x3 matrix
-```{r}
-omat(mod)
-```
-
-
-
-Use `smat` to update the `$SIGMA` matrix
-
-```{r}
-smat(mod)
-```
-
-
-## Simulation loop
+1.  Use `smat` to update the `$SIGMA` matrix
 
 ```{r}
 set.seed(222)
