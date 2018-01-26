@@ -31,6 +31,8 @@ mod <- mread("bootstrap")
 Example bootstrap output
 ========================
 
+The example assumes that the different estimates are in columns and the different boostrap runs are each in a separate row of a data frame.
+
 ``` r
 data(exBoot)
 head(exBoot)
