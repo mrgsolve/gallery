@@ -151,7 +151,7 @@ out <- lapply(1:10, function(i) {
 ggplot(out, aes(time,DV,group=rep)) + geom_line()
 ```
 
-# Simulate withonly uncertainty in the `THETA`s
+# Simulate with only uncertainty in the `THETA`s
 
 All the uncertainty comes from the bootstrap `THETA`s
 

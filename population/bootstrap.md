@@ -10,7 +10,7 @@ Simulate from bootstrap estimates
     -   [Update the parameters](#update-the-parameters)
     -   [Upate the matrices](#upate-the-matrices)
     -   [Simulation loop](#simulation-loop)
--   [Simulate withonly uncertainty in the `THETA`s](#simulate-withonly-uncertainty-in-the-thetas)
+-   [Simulate with only uncertainty in the `THETA`s](#simulate-with-only-uncertainty-in-the-thetas)
 -   [Session Info](#session-info)
 
 ``` r
@@ -197,8 +197,8 @@ ggplot(out, aes(time,DV,group=rep)) + geom_line()
 
 ![](img/bootstrap-unnamed-chunk-15-1.png)
 
-Simulate withonly uncertainty in the `THETA`s
-=============================================
+Simulate with only uncertainty in the `THETA`s
+==============================================
 
 All the uncertainty comes from the bootstrap `THETA`s
 
