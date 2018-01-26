@@ -55,7 +55,7 @@ head(exBoot)
 
 **NOTE** mrgsolve has some functions to help you deal with output that is in this `NONMEM` type format; for `OMEGA`, it is expecting `OMEGA11`, then `OMEGA21` then `OMEGA22` then `OMEGA31` etc. Below, find some functions to go into this data frame to make R matrices that you can pass to the model.
 
-I know that PsN can return these data in a different order. I don't know enough about how it is structured to write something that will always handle properly and in a convenient way. So there if you're using PsN, there is a chance you will have to code some of this by hand. If that is a case, I'm looking for a PsN-using collaborator who could help us understand / predict the output so we could automate in this case.
+I know that PsN can return these data in a different order. I don't know enough about how it is structured to write something that will always handle properly and in a convenient way. So there if you're using PsN, there is a chance you will have to code some of this by hand. If that is a case, I'm looking for a PsN-using collaborator who could help us understand / predict the output so we could automate.
 
 Helper functions for matrices
 =============================
@@ -112,10 +112,17 @@ omegas[[10]]
     . [2,] 0.05516 0.23430 0.08746
     . [3,] 0.14330 0.08746 0.41730
 
+``` r
+length(omegas)
+```
+
+    . [1] 100
+
 Do this for `SIGMA` too; I only had one `EPS` in the simulation model, so I'm going to look for `SIGMA11` only to get a 1x1 matrix
 
 ``` r
 sigmas <- as_bmat(exBoot, "SIGMA11")
+
 sigmas[[10]]
 ```
 
@@ -185,11 +192,10 @@ out <- lapply(1:10, function(i) {
 ```
 
 ``` r
-ggplot(out, aes(time,DV,group=rep)) + 
-  geom_line()
+ggplot(out, aes(time,DV,group=rep)) + geom_line()
 ```
 
-![](img/bootstrap-unnamed-chunk-14-1.png)
+![](img/bootstrap-unnamed-chunk-15-1.png)
 
 Simulate withonly uncertainty in the `THETA`s
 =============================================
@@ -212,11 +218,10 @@ out <- lapply(1:10, function(i) {
 ```
 
 ``` r
-ggplot(out, aes(time,DV,group=rep)) + 
-  geom_line()
+ggplot(out, aes(time,DV,group=rep)) + geom_line()
 ```
 
-![](img/bootstrap-unnamed-chunk-16-1.png)
+![](img/bootstrap-unnamed-chunk-17-1.png)
 
 Session Info
 ============

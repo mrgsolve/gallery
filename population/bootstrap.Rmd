@@ -55,7 +55,7 @@ way.  So there if you're using PsN, there is a chance
 you will have to code some of this by hand.  If that
 is a case, I'm looking for a PsN-using collaborator
 who could help us understand / predict the 
-output so we could automate in this case. 
+output so we could automate. 
 
 
 # Helper functions for matrices
@@ -71,6 +71,7 @@ as_bmat(exBoot[1,], "OMEGA")
 If you have to code something by hand, these might help
 ```{r}
 bmat(c(1,2,3))
+
 dmat(c(1,2,3))
 ```
 
@@ -86,11 +87,17 @@ omegas <- as_bmat(exBoot, "OMEGA")
 omegas[[10]]
 ```
 
+```{r}
+length(omegas)
+```
+
+
 Do this for `SIGMA` too; I only had one `EPS` in the 
 simulation model, so I'm going to look for `SIGMA11` only
 to get a 1x1 matrix
 ```{r}
 sigmas <- as_bmat(exBoot, "SIGMA11")
+
 sigmas[[10]]
 ```
 
@@ -141,8 +148,7 @@ out <- lapply(1:10, function(i) {
 
 
 ```{r}
-ggplot(out, aes(time,DV,group=rep)) + 
-  geom_line()
+ggplot(out, aes(time,DV,group=rep)) + geom_line()
 ```
 
 # Simulate withonly uncertainty in the `THETA`s
@@ -166,8 +172,7 @@ out <- lapply(1:10, function(i) {
 
 
 ```{r}
-ggplot(out, aes(time,DV,group=rep)) + 
-  geom_line()
+ggplot(out, aes(time,DV,group=rep)) + geom_line()
 ```
 
 # Session Info
