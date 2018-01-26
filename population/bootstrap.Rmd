@@ -1,0 +1,174 @@
+---
+title: Simulate from bootstrap estimates
+author: ""
+output: 
+  github_document:
+    toc: true
+---
+
+
+```{r, echo = FALSE}
+knitr::opts_chunk$set(comment = '.', fig.path = "img/bootstrap-")
+```
+
+
+
+```{r, message = FALSE}
+library(mrgsolve)
+library(dplyr)
+library(ggplot2)
+```
+
+# Load an example model
+
+You can see the model source [here](bootstrap.cpp)
+```{r, message = FALSE}
+mod <- mread("bootstrap")
+```
+
+# Example bootstrap output
+
+
+```{r}
+data(exBoot)
+head(exBoot)
+```
+
+
+__NOTE__ mrgsolve has some
+ functions to help you deal with 
+output that is in this `NONMEM` type format; for 
+`OMEGA`, it is expecting `OMEGA11`, then `OMEGA21`
+then `OMEGA22`  then `OMEGA31` etc.  Below, find
+some functions to go into this data frame to 
+make R matrices that you can pass to the 
+model. 
+
+I know that PsN can return these data in a 
+different order.  I don't know enough about 
+how it is structured to write something that 
+will always handle properly and in a convenient
+way.  So there if you're using PsN, there is a chance
+you will have to code some of this by hand.  If that
+is a case, I'm looking for a PsN-using collaborator
+who could help us understand / predict the 
+output so we could automate in this case. 
+
+
+# Helper functions for matrices
+
+## Create single `$OMEGA` matrix
+
+This creates a matrix from data in the 
+first row where the name contains `OMEGA`
+```{r}
+as_bmat(exBoot[1,], "OMEGA")
+```
+
+If you have to code something by hand, these might help
+```{r}
+bmat(c(1,2,3))
+dmat(c(1,2,3))
+```
+
+
+## Create a list of `$OMEGA` and `$SIGMA` matrices
+
+Create a list of `OMEGA` matrices
+```{r}
+omegas <- as_bmat(exBoot, "OMEGA")
+```
+
+```{r}
+omegas[[10]]
+```
+
+Do this for `SIGMA` too; I only had one `EPS` in the 
+simulation model, so I'm going to look for `SIGMA11` only
+to get a 1x1 matrix
+```{r}
+sigmas <- as_bmat(exBoot, "SIGMA11")
+sigmas[[10]]
+```
+
+# Simulate
+
+## Update the parameters
+
+The `param` call scrapes the `THETA`s from `exBoot`; this works
+because `THETA1`, `THETA2`, and `THETA3` are listed in `$PARAM`
+```{r}
+param(mod)
+```
+
+## Upate the matrices
+
+Use `omat` to update the `$OMEGA` matrix; this works because
+`$OMEGA` is a 3x3 matrix
+```{r}
+omat(mod)
+```
+
+
+
+Use `smat` to update the `$SIGMA` matrix
+
+```{r}
+smat(mod)
+```
+
+
+## Simulation loop
+
+```{r}
+set.seed(222)
+
+out <- lapply(1:10, function(i) {
+  
+  mod %>%
+    param(exBoot[i,]) %>%
+    omat(omegas[[i]]) %>%
+    smat(sigmas[[i]]) %>%
+    ev(amt = 100, ii = 24, addl = 2) %>%
+    mrgsim(Req = "DV", end = 96) %>%
+    mutate(rep = i)
+  
+}) %>% bind_rows
+```
+
+
+```{r}
+ggplot(out, aes(time,DV,group=rep)) + 
+  geom_line()
+```
+
+# Simulate withonly uncertainty in the `THETA`s
+
+All the uncertainty comes from the bootstrap `THETA`s
+
+```{r}
+set.seed(222)
+
+out <- lapply(1:10, function(i) {
+  
+  mod %>%
+    param(exBoot[i,]) %>%
+    zero_re() %>%
+    ev(amt = 100, ii = 24, addl = 2) %>%
+    mrgsim(Req = "DV", end = 96) %>%
+    mutate(rep = i)
+  
+}) %>% bind_rows
+```
+
+
+```{r}
+ggplot(out, aes(time,DV,group=rep)) + 
+  geom_line()
+```
+
+# Session Info
+```{r}
+devtools::session_info()
+```
+
