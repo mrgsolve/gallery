@@ -1,7 +1,7 @@
 Sobol sensitivity analysis
 ================
 Kyle Baron and Ahmed Elmokadem
-2018-02-01 12:58:40
+2018-02-01 14:09:20
 
 -   [Reference / About](#reference-about)
 -   [Tools](#tools)
@@ -90,15 +90,13 @@ sunev <- function(amt = 50,...) ev(amt = amt, ...)
 Generate samples
 ================
 
-This first function calls `parameterSets` from the sensitivity package. We pass in a list of parameters (with names) and we simulate `2*n` samples for every parameter.
+Th function generates uniform samples from a 100 fold decrease to 100 fold increase in the nominal parameter value.
 
 The return value is a list with two data frames that can be passed into the sobol function.
 
 ``` r
-gen_sobol <- function(n, l, which = names(l), 
-                      factor = c(0.01, 100)) {
-  
-  stopifnot(requireNamespace("sensitivity"))
+gen_samples <- function(n, l, which = names(l), 
+                        factor = c(0.01,100)) {
   
   vars <- select_vars(names(l), !!(enquo(which)))
   
@@ -110,17 +108,24 @@ gen_sobol <- function(n, l, which = names(l),
   
   n <- length(l)*n*2
   
-  samp <- parameterSets(par.ranges = l, 
-                        samples = n, 
-                        method = "sobol")
+  df <- as.data.frame(l)
   
-  samp <- set_names(as.data.frame(samp), names(l))
+  len <- length(df)
   
-  first <- n/2
+  X <- matrix(ncol=len, nrow=n)
   
-  second <- first+1
+  colnames(X) <- names(df)
   
-  list(samp[1:first,],samp[second:n,])
+  Y <- X
+  
+  for(i in seq(len)){
+    r <- runif(n, df[1,i], df[2,i])
+    X[,i] <- r
+    r <- runif(n, df[1,i], df[2,i])
+    Y[,i] <- r
+  }
+  
+  return(list(x1 = as.data.frame(X), x2 = as.data.frame(Y)))
 }
 ```
 
@@ -155,24 +160,23 @@ First, generate the samples
 ---------------------------
 
 ``` r
-samp <- gen_sobol(5000, param(mod), TVCL:TVVP)
-
-head(samp[[1]])
+samp <- gen_samples(10000, param(mod), TVCL:TVVP)
+head(samp$x1)
 ```
 
-    .       TVCL      TVVC      TVKA       TVQ      TVVP
-    . 1 2590.259 101510.15  9.750975 361.03610 29152.915
-    . 2 3885.130  50765.23 14.625488 180.55415 43726.458
-    . 3 1295.389 152255.08  4.876462 541.51805 14579.372
-    . 4 1942.824  76137.69 12.188231  90.31318 51013.229
-    . 5 4532.565 177627.54  2.439206 451.27708 21866.144
-    . 6 3237.694  25392.76  7.313719 270.79513  7292.601
+    .        TVCL      TVVC      TVKA       TVQ     TVVP
+    . 1 2429.3300 176342.58  5.535125  74.75949 44710.40
+    . 2   74.8882  50872.12 18.217370 696.40767 52453.65
+    . 3 1994.7893  17451.53 10.635105 439.53373  7050.00
+    . 4 2724.9993 122804.77  5.900279 613.07055 52376.63
+    . 5 3746.0776  69886.68 16.643644 286.70360 35800.49
+    . 6  847.4868  60377.39 19.005303 152.58920 55167.84
 
 Then, run `sensitivity::soboljansen`
 ------------------------------------
 
 ``` r
-x <- soboljansen(batch_run, X1=samp[[1]], X2=samp[[2]], nboot=100)
+x <- sobol2007(batch_run, X1=samp$x1, X2=samp$x2, nboot=100)
 ```
 
 Results
@@ -182,7 +186,7 @@ Results
 plot(x)
 ```
 
-![](img/sobolunnamed-chunk-12-1.png)
+![](img/sobolunnamed-chunk-11-1.png)
 
 ``` r
 x
@@ -190,25 +194,25 @@ x
 
     . 
     . Call:
-    . soboljansen(model = batch_run, X1 = samp[[1]], X2 = samp[[2]],     nboot = 100)
+    . sobol2007(model = batch_run, X1 = samp$x1, X2 = samp$x2, nboot = 100)
     . 
-    . Model runs: 175000 
+    . Model runs: 700000 
     . 
     . First order indices:
-    .       original        bias std. error min. c.i. max. c.i.
-    . TVCL 0.3892124 0.005964781 0.07182039 0.2661871 0.5406196
-    . TVVC 0.5905834 0.006610447 0.05992586 0.4868937 0.7290147
-    . TVKA 0.3863340 0.003832542 0.03323116 0.3210421 0.4519995
-    . TVQ  0.4056261 0.003698945 0.04017953 0.3289234 0.5064001
-    . TVVP 0.3841869 0.002770308 0.03445079 0.3236074 0.4560127
+    .          original          bias   std. error     min. c.i.   max. c.i.
+    . TVCL 1.616957e-01 -2.722599e-03 0.0233064014  0.1038636228 0.197508829
+    . TVVC 3.063766e-01  2.292348e-03 0.0203266099  0.2656954070 0.343402050
+    . TVKA 1.645193e-03  3.480855e-05 0.0004195809  0.0007053435 0.002395403
+    . TVQ  1.447333e-04 -1.122845e-05 0.0010667543 -0.0016737604 0.002608184
+    . TVVP 8.433114e-06 -6.386623e-05 0.0011599045 -0.0022111933 0.002088368
     . 
     . Total indices:
-    .         original          bias   std. error   min. c.i.   max. c.i.
-    . TVCL 0.343163099 -1.966976e-03 0.0557680527 0.209495733 0.428180945
-    . TVVC 0.564531363 -6.692817e-03 0.0441926119 0.467371744 0.649838831
-    . TVKA 0.005682896 -7.392882e-06 0.0006743975 0.003955947 0.006766684
-    . TVQ  0.041271538 -2.161320e-04 0.0065683716 0.028649453 0.053980717
-    . TVVP 0.009486263 -5.876025e-05 0.0025040052 0.002435703 0.013237916
+    .         original          bias  std. error     min. c.i.   max. c.i.
+    . TVCL 0.664223512  0.0002758948 0.019242199  0.6236356998 0.704858591
+    . TVVC 0.837619421 -0.0014385347 0.013265855  0.8131820575 0.867310746
+    . TVKA 0.005618726  0.0000880708 0.001179049  0.0030495322 0.007933839
+    . TVQ  0.073608266 -0.0019981472 0.019112266  0.0331181968 0.113112159
+    . TVVP 0.038682792 -0.0005381774 0.017332536 -0.0001900709 0.071575334
 
 Session
 =======
@@ -223,7 +227,7 @@ devtools::session_info()
     .  ui       X11                         
     .  language (EN)                        
     .  collate  en_US.UTF-8                 
-    .  tz       America/Chicago             
+    .  tz       America/Los_Angeles         
     .  date     2018-02-01                  
     . 
     .  package       * version     date       source                            
@@ -277,7 +281,6 @@ devtools::session_info()
     .  psych           1.7.8       2017-09-09 CRAN (R 3.4.1)                    
     .  purrr         * 0.2.4       2017-10-18 cran (@0.2.4)                     
     .  R6              2.2.2       2017-06-17 CRAN (R 3.4.0)                    
-    .  randtoolbox     1.17        2015-07-30 CRAN (R 3.4.0)                    
     .  Rcpp            0.12.15     2018-01-20 cran (@0.12.15)                   
     .  RcppArmadillo   0.8.300.1.0 2017-12-06 CRAN (R 3.4.2)                    
     .  readr         * 1.1.1       2017-05-16 cran (@1.1.1)                     
@@ -285,7 +288,6 @@ devtools::session_info()
     .  reshape2        1.4.3       2017-12-11 cran (@1.4.3)                     
     .  rlang           0.1.6.9003  2018-01-29 Github (tidyverse/rlang@a8c15c6)  
     .  rmarkdown       1.8         2017-11-17 cran (@1.8)                       
-    .  rngWELL         0.10-5      2017-05-21 CRAN (R 3.4.0)                    
     .  rprojroot       1.3-2       2018-01-03 CRAN (R 3.4.2)                    
     .  rstudioapi      0.7         2017-09-07 CRAN (R 3.4.1)                    
     .  rvest           0.3.2       2016-06-17 CRAN (R 3.4.0)                    

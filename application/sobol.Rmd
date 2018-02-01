@@ -50,19 +50,17 @@ sunev <- function(amt = 50,...) ev(amt = amt, ...)
 
 # Generate samples
 
-This first function calls `parameterSets` from the 
-sensitivity package.  We pass in a list of parameters
-(with names) and we simulate `2*n` samples for 
-every parameter. 
+Th function generates uniform samples from a 
+100 fold decrease to 100 fold increase in the 
+nominal parameter value.
 
 The return value is a list with two data frames that
 can be passed into the sobol function.
 
+
 ```{r}
-gen_sobol <- function(n, l, which = names(l), 
-                      factor = c(0.01, 100)) {
-  
-  stopifnot(requireNamespace("sensitivity"))
+gen_samples <- function(n, l, which = names(l), 
+                        factor = c(0.01,100)) {
   
   vars <- select_vars(names(l), !!(enquo(which)))
   
@@ -74,39 +72,24 @@ gen_sobol <- function(n, l, which = names(l),
   
   n <- length(l)*n*2
   
-  samp <- parameterSets(par.ranges = l, 
-                        samples = n, 
-                        method = "sobol")
-  
-  samp <- set_names(as.data.frame(samp), names(l))
-  
-  first <- n/2
-  
-  second <- first+1
-  
-  list(samp[1:first,],samp[second:n,])
-}
-```
-
-
-```{r, include = FALSE}
-gen_samples <- function(n, l, which = names(l), 
-                        factor = c(0.01,100)) {
-  vars <- select_vars(names(l), !!(enquo(which)))
-  l <- as.list(l)[vars]
-  l <- lapply(l, function(x) {
-    x*factor  
-  })
-  n <- length(l)*n
   df <- as.data.frame(l)
+  
   len <- length(df)
+  
   X <- matrix(ncol=len, nrow=n)
+  
   colnames(X) <- names(df)
+  
+  Y <- X
+  
   for(i in seq(len)){
     r <- runif(n, df[1,i], df[2,i])
     X[,i] <- r
+    r <- runif(n, df[1,i], df[2,i])
+    Y[,i] <- r
   }
-  return(as.data.frame(X))
+  
+  return(list(x1 = as.data.frame(X), x2 = as.data.frame(Y)))
 }
 ```
 
@@ -140,15 +123,14 @@ batch_run <- function(x) {
 
 ## First, generate the samples
 ```{r}
-samp <- gen_sobol(5000, param(mod), TVCL:TVVP)
-
-head(samp[[1]])
+samp <- gen_samples(10000, param(mod), TVCL:TVVP)
+head(samp$x1)
 ```
 
 
 ## Then, run `sensitivity::soboljansen`
 ```{r}
-x <- soboljansen(batch_run, X1=samp[[1]], X2=samp[[2]], nboot=100)
+x <- sobol2007(batch_run, X1=samp$x1, X2=samp$x2, nboot=100)
 ```
 
 # Results
