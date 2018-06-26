@@ -1,0 +1,101 @@
+---
+title: mrgsolve in Parallel
+author: "Kyle Baron"
+date: "`r Sys.time()`"
+output:
+  github_document:
+    toc: TRUE
+---
+
+```{r, echo = FALSE}
+knitr::opts_chunk$set(message = FALSE, warning = FALSE, 
+                      comment = '.', fig.path = "img/parallel")
+```
+
+# About
+This vignette looks at options for parallelizing simulations
+with mrgsolve in a platform-independent way.  We utilize the 
+`future.apply` package (available on CRAN) to do this.
+
+Your mileage may vary in terms of speedup factor.  It is highly dependent
+on the problem you have.  Also, with any method there is some overhead
+that needs to be taken into consideration when planning the simulations.  It 
+is very possible that your parallelized setup takes __longer__ with the 
+non-parallel setup.
+
+# An example model
+
+```{r}
+library(dplyr)
+library(mrgsolve)
+mod <- mread("pk1", modlib())
+```
+
+# The `future.apply` package
+```{r}
+library(future.apply)
+```
+## Choose a plan
+```{r}
+plan("multicore")
+```
+
+## Simulate with `future_lapply`
+
+Works pretty much like `lapply`
+
+```{r}
+out <- future_lapply(1:10, function(i) {
+  mod %>% 
+    ev(amt = 100) %>%
+    mrgsim() %>% 
+    mutate(i = i)
+}) %>% bind_rows
+```
+
+```{r}
+head(out)
+```
+
+# Compare methods
+
+## `future_lapply`
+
+```{r}
+
+system.time({
+  out <- future_lapply(1:2000, function(i) {
+    mod %>% 
+      ev(amt = 100, ii = 24, addl = 27) %>%
+      mrgsim(end = 28*24, nid = 20) %>% 
+      mutate(i = i)
+  }) %>% bind_rows
+})
+```
+
+## `lapply`
+
+```{r}
+system.time({
+  out <- lapply(1:2000, function(i) {
+    mod %>% 
+      ev(amt = 100, ii = 24, addl = 27) %>%
+      mrgsim(end = 28*24, nid = 20) %>% 
+      mutate(i = i)
+  }) %>% bind_rows
+})
+```
+
+## `mclapply`
+
+```{r}
+system.time({
+  out <- parallel::mclapply(1:2000, function(i) {
+    mod %>% 
+      ev(amt = 100, ii = 24, addl = 27) %>%
+      mrgsim(end = 28*24, nid = 20) %>% 
+      mutate(i = i)
+  }) %>% bind_rows
+})
+```
+

@@ -97,7 +97,7 @@ gen_samples <- function(n, l, which = names(l),
 
 Simulate one chunk of data; not absolutely needed for 
 this; but we might use it if we expand this to run in 
-parallel.  I'll keep it around for now.
+parallel.  Ill keep it around for now.
 
 ```{r}
 sim_chunk <- function(mod, x) {
@@ -128,7 +128,7 @@ head(samp$x1)
 ```
 
 
-## Then, run `sensitivity::soboljansen`
+## Then, run `sensitivity::sobol2007`
 ```{r}
 x <- sobol2007(batch_run, X1=samp$x1, X2=samp$x2, nboot=100)
 ```
@@ -142,6 +142,73 @@ plot(x)
 ```{r}
 x
 ```
+
+# The HIV model
+
+```{r}
+
+```
+
+```{r}
+bound <- tribble(
+  ~name, ~lower, ~upper,
+"s"	,1.00E-02	,50,
+"muT",	1.00E-04,	0.2,
+"r"	,1.00E-03,	50,
+"k1",	1.00E-07,	1.00E-03,
+"k2"	,1.00E-05	,1.00E-02,
+"mub"	,1.00E-01	,0.4,
+"N",	1	,2000,
+"muV",	1.00E-01,	10
+)
+
+mksamp <- function(bounds, n) {
+  x <- split(bounds,seq(nrow(bounds)))
+  out <- lapply(x, function(xx) {
+    runif(n, xx$lower[1], xx$upper[1])  
+  })
+  names(out) <- bounds$name
+  return(as_data_frame(out))
+  
+}
+
+
+x1 <- as.data.frame(mksamp(bound,5000*8))
+x2 <- as.data.frame(mksamp(bound,5000*8))
+```
+
+
+
+```{r}
+
+
+mod <- mread_cache("hiv", "model")
+
+# mod
+# 
+# samp <- gen_samples(1000, 
+#                     param(mod),
+#                     c(s,muT,r,k1,k2,mub,N,muV),
+#                     factor = c(0.1,20))
+
+hiv_run <- function(x) {
+  out <- mrgsim_i(x = mod, 
+                  idata = x, 
+                  maxsteps = 50000, 
+                  delta = 1, 
+                  end = 2000)
+
+    group_by(out, ID) %>% 
+    summarise(auc = auc_partial(time,V)) %>% 
+    pull(auc)
+}
+
+x <- soboljansen(hiv_run, 
+               X1=x1, X2=x2, 
+               nboot=100)
+
+```
+
 
 # Session
 ```{r}
