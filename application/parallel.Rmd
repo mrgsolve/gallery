@@ -35,14 +35,44 @@ mod <- mread("pk1", modlib())
 ```{r}
 library(future.apply)
 ```
-## Choose a plan
-```{r}
-plan("multicore")
-```
+
 
 ## Simulate with `future_lapply`
 
 Works pretty much like `lapply`
+
+```{r}
+plan("multiprocess")
+```
+
+Note: with `plan(multiprocess)`, you have to load the model shared
+object into the process. See `?laodso`. 
+
+```{r}
+e <- ev(amt = 100)
+end <- 24
+
+out <- future_lapply(1:10, function(i) {
+  
+  loadso(mod) ## NOTE
+  
+  mod %>% 
+    ev(e) %>%
+    mrgsim(end = end) %>% 
+    mutate(i = i)
+  
+}) %>% bind_rows
+```
+
+```{r}
+head(out)
+```
+
+
+On macos or unix systems, you can use:
+```{r}
+plan("multicore")
+```
 
 ```{r}
 out <- future_lapply(1:10, function(i) {
@@ -57,11 +87,15 @@ out <- future_lapply(1:10, function(i) {
 head(out)
 ```
 
+
+
 # Compare methods
 
 ## `future_lapply`
 
 ```{r}
+
+plan("multicore")
 
 system.time({
   out <- future_lapply(1:2000, function(i) {

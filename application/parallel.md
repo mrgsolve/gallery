@@ -1,12 +1,11 @@
 mrgsolve in Parallel
 ================
 Kyle Baron
-2018-06-25 23:43:47
+2018-06-26 09:28:10
 
 -   [About](#about)
 -   [An example model](#an-example-model)
 -   [The `future.apply` package](#the-future.apply-package)
-    -   [Choose a plan](#choose-a-plan)
     -   [Simulate with `future_lapply`](#simulate-with-future_lapply)
 -   [Compare methods](#compare-methods)
     -   [`future_lapply`](#future_lapply)
@@ -37,17 +36,51 @@ The `future.apply` package
 library(future.apply)
 ```
 
-Choose a plan
--------------
-
-``` r
-plan("multicore")
-```
-
 Simulate with `future_lapply`
 -----------------------------
 
 Works pretty much like `lapply`
+
+``` r
+plan("multiprocess")
+```
+
+Note: with `plan(multiprocess)`, you have to load the model shared object into the process. See `?laodso`.
+
+``` r
+e <- ev(amt = 100)
+end <- 24
+
+out <- future_lapply(1:10, function(i) {
+  
+  loadso(mod) ## NOTE
+  
+  mod %>% 
+    ev(e) %>%
+    mrgsim(end = end) %>% 
+    mutate(i = i)
+}) %>% bind_rows
+```
+
+``` r
+head(out)
+```
+
+    . # A tibble: 6 x 6
+    .      ID  time     EV  CENT    CP     i
+    .   <dbl> <dbl>  <dbl> <dbl> <dbl> <int>
+    . 1     1     0   0      0    0        1
+    . 2     1     0 100      0    0        1
+    . 3     1     1  36.8   61.4  3.07     1
+    . 4     1     2  13.5   81.0  4.05     1
+    . 5     1     3   4.98  85.4  4.27     1
+    . 6     1     4   1.83  84.3  4.21     1
+
+On macos or unix systems, you can use:
+
+``` r
+plan("multicore")
+```
 
 ``` r
 out <- future_lapply(1:10, function(i) {
@@ -79,6 +112,8 @@ Compare methods
 ---------------
 
 ``` r
+plan("multicore")
+
 system.time({
   out <- future_lapply(1:2000, function(i) {
     mod %>% 
@@ -90,7 +125,7 @@ system.time({
 ```
 
     .    user  system elapsed 
-    .  37.177  10.697  12.785
+    .  36.358   6.027   9.909
 
 `lapply`
 --------
@@ -107,7 +142,7 @@ system.time({
 ```
 
     .    user  system elapsed 
-    .  18.898   1.197  20.469
+    .  18.318   1.131  19.632
 
 `mclapply`
 ----------
@@ -124,7 +159,7 @@ system.time({
 ```
 
     .    user  system elapsed 
-    .  22.297   5.315  17.319
+    .  20.746   4.566  15.045
 
 Parallelize within data set
 ===========================
@@ -163,7 +198,7 @@ system.time({
 ```
 
     .    user  system elapsed 
-    .   6.084   2.419   2.368
+    .   5.999   2.347   2.218
 
 ``` r
 dim(out)
@@ -180,4 +215,4 @@ system.time({
 ```
 
     .    user  system elapsed 
-    .   3.728   0.509   4.265
+    .   3.368   0.441   3.861
