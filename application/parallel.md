@@ -1,7 +1,7 @@
 mrgsolve in Parallel
 ================
 Kyle Baron
-2018-06-26 09:28:10
+2018-06-26 09:31:40
 
 -   [About](#about)
 -   [An example model](#an-example-model)
@@ -59,6 +59,7 @@ out <- future_lapply(1:10, function(i) {
     ev(e) %>%
     mrgsim(end = end) %>% 
     mutate(i = i)
+  
 }) %>% bind_rows
 ```
 
@@ -125,7 +126,7 @@ system.time({
 ```
 
     .    user  system elapsed 
-    .  36.358   6.027   9.909
+    .  36.205   6.555   9.204
 
 `lapply`
 --------
@@ -142,7 +143,7 @@ system.time({
 ```
 
     .    user  system elapsed 
-    .  18.318   1.131  19.632
+    .  17.262   1.019  18.371
 
 `mclapply`
 ----------
@@ -159,7 +160,7 @@ system.time({
 ```
 
     .    user  system elapsed 
-    .  20.746   4.566  15.045
+    .  19.887   4.320  13.706
 
 Parallelize within data set
 ===========================
@@ -198,7 +199,7 @@ system.time({
 ```
 
     .    user  system elapsed 
-    .   5.999   2.347   2.218
+    .   6.026   2.435   2.320
 
 ``` r
 dim(out)
@@ -215,4 +216,4 @@ system.time({
 ```
 
     .    user  system elapsed 
-    .   3.368   0.441   3.861
+    .   3.326   0.460   3.805
