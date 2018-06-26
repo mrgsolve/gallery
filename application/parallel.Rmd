@@ -99,3 +99,43 @@ system.time({
 })
 ```
 
+# Parallelize within data set
+ 
+In this example, let's simulate 3k subjects at each of 8 doses. We'll 
+split the data set on the dose and simulate each dose separately and then 
+bind back together in a single data set.  This is probably the quickest
+way to get it done.  But we really need to work to see the 
+speedup from parallelizing.
+
+```{r}
+data <- expand.ev(
+  ID = seq(2000), 
+  amt = c(1,3,10,30,100,300,1000,3000),
+  ii = 24, addl = 27
+) 
+count(data,amt)
+```
+
+```{r}
+data_split <- split(data, data$amt)
+
+system.time({
+  out <- future_lapply(data_split, function(chunk) {
+    mod %>% mrgsim_d(chunk, end = 24*27) %>% as_data_frame  
+  }) %>% bind_rows()
+})
+```
+```{r}
+dim(out)
+```
+
+```{r}
+system.time({
+  out <- lapply(data_split, function(chunk) {
+    mod %>% mrgsim_d(chunk, end = 24*27) %>% as_data_frame  
+  }) %>% bind_rows()
+})
+```
+
+
+

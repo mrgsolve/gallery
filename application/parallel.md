@@ -1,7 +1,7 @@
 mrgsolve in Parallel
 ================
 Kyle Baron
-2018-06-25 23:15:53
+2018-06-25 23:43:47
 
 -   [About](#about)
 -   [An example model](#an-example-model)
@@ -12,6 +12,7 @@ Kyle Baron
     -   [`future_lapply`](#future_lapply)
     -   [`lapply`](#lapply)
     -   [`mclapply`](#mclapply)
+-   [Parallelize within data set](#parallelize-within-data-set)
 
 About
 =====
@@ -89,7 +90,7 @@ system.time({
 ```
 
     .    user  system elapsed 
-    .  36.781   6.721  11.518
+    .  37.177  10.697  12.785
 
 `lapply`
 --------
@@ -106,7 +107,7 @@ system.time({
 ```
 
     .    user  system elapsed 
-    .  19.613   1.246  21.278
+    .  18.898   1.197  20.469
 
 `mclapply`
 ----------
@@ -123,4 +124,60 @@ system.time({
 ```
 
     .    user  system elapsed 
-    .  21.460   6.112  17.194
+    .  22.297   5.315  17.319
+
+Parallelize within data set
+===========================
+
+In this example, let's simulate 3k subjects at each of 8 doses. We'll split the data set on the dose and simulate each dose separately and then bind back together in a single data set. This is probably the quickest way to get it done. But we really need to work to see the speedup from parallelizing.
+
+``` r
+data <- expand.ev(
+  ID = seq(2000), 
+  amt = c(1,3,10,30,100,300,1000,3000),
+  ii = 24, addl = 27
+) 
+count(data,amt)
+```
+
+    . # A tibble: 8 x 2
+    .     amt     n
+    .   <dbl> <int>
+    . 1     1  2000
+    . 2     3  2000
+    . 3    10  2000
+    . 4    30  2000
+    . 5   100  2000
+    . 6   300  2000
+    . 7  1000  2000
+    . 8  3000  2000
+
+``` r
+data_split <- split(data, data$amt)
+
+system.time({
+  out <- future_lapply(data_split, function(chunk) {
+    mod %>% mrgsim_d(chunk, end = 24*27) %>% as_data_frame  
+  }) %>% bind_rows()
+})
+```
+
+    .    user  system elapsed 
+    .   6.084   2.419   2.368
+
+``` r
+dim(out)
+```
+
+    . [1] 10400000        5
+
+``` r
+system.time({
+  out <- lapply(data_split, function(chunk) {
+    mod %>% mrgsim_d(chunk, end = 24*27) %>% as_data_frame  
+  }) %>% bind_rows()
+})
+```
+
+    .    user  system elapsed 
+    .   3.728   0.509   4.265
