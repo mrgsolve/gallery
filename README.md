@@ -13,5 +13,5 @@
   - [Input data sets](data_sets/input_data_sets.md)
 - [Application](application/README.md)
   - [Sobol sensitivity analysis](application/sobol.md)
-  - [Parallel simulation](parallel.md)
+  - [Parallel simulation](application/parallel.md)
 
