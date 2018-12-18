@@ -2,6 +2,8 @@ Simulate from bootstrap estimates
 ================
 
 -   [Load an example model](#load-an-example-model)
+-   [Generate an example data template](#generate-an-example-data-template)
+    -   [Test simulation](#test-simulation)
 -   [Example bootstrap output](#example-bootstrap-output)
 -   [Helper functions for matrices](#helper-functions-for-matrices)
     -   [Create a list of `$OMEGA` and `$SIGMA` matrices](#create-a-list-of-omega-and-sigma-matrices)
@@ -32,9 +34,9 @@ param(mod)
 
     . 
     .  Model parameters (N=4):
-    .  name   value . name   value
-    .  THETA1 1     | THETA3 0.5  
-    .  THETA2 24    | WT     70
+    .  name   value . name   value 
+    .  THETA1 0     | THETA3 -0.693
+    .  THETA2 3.18  | WT     70
 
 We have a 3x3 `$OMEGA` matrix
 
@@ -57,6 +59,44 @@ smat(mod)
     . $...
     .     [,1]
     . 1:     0
+
+Generate an example data template
+=================================
+
+``` r
+data <- ev_rep(ev(amt = 100, ii = 24, addl = 2), ID = 1:5)
+```
+
+100 mg daily x3 in 5 individuals
+
+``` r
+data
+```
+
+    .   time cmt amt evid ii addl ID
+    . 1    0   1 100    1 24    2  1
+    . 2    0   1 100    1 24    2  2
+    . 3    0   1 100    1 24    2  3
+    . 4    0   1 100    1 24    2  4
+    . 5    0   1 100    1 24    2  5
+
+Test simulation
+---------------
+
+The basic simulation we will be doing is
+
+``` r
+set.seed(98765)
+
+mod %>%
+  data_set(data) %>%
+  mrgsim(Req = "DV", end = 96)  %>% 
+  plot()
+```
+
+![](img/bootstrap-unnamed-chunk-9-1.png)
+
+Just three doses, simulating out to 96 hours. From here, we will do this test simulation for several replicates, with each replicate drawing a different set of bootstrap parameters.
 
 Example bootstrap output
 ========================
@@ -144,6 +184,8 @@ Simulate
 2.  Use `omat` to update the `$OMEGA` matrix; this works because `$OMEGA` is a 3x3 matrix
 3.  Use `smat` to update the `$SIGMA` matrix
 
+In the simulation loop, `i` indicates the replicate number, or the `ith` set of bootstrap parameter estimates.
+
 ``` r
 set.seed(222)
 
@@ -153,44 +195,50 @@ out <- lapply(1:10, function(i) {
     param(exBoot[i,]) %>%
     omat(omegas[[i]]) %>%
     smat(sigmas[[i]]) %>%
-    ev(amt = 100, ii = 24, addl = 2) %>%
+    data_set(data) %>%
     mrgsim(Req = "DV", end = 96) %>%
     mutate(rep = i)
   
 }) %>% bind_rows
 ```
 
+In the output, we have 10 replicates, each with five individuals
+
 ``` r
-ggplot(out, aes(time,DV,group=rep)) + geom_line()
+ggplot(out, aes(time,DV,group=ID)) + geom_line() + theme_bw() + facet_wrap(~rep)
 ```
 
-![](img/bootstrap-unnamed-chunk-14-1.png)
+![](img/bootstrap-unnamed-chunk-17-1.png)
 
 Simulate with only uncertainty in the `THETA`s
 ==============================================
 
-All the uncertainty comes from the bootstrap `THETA`s
+Here, we just drop out the update to `OMEGA` and `SIGMA` and zero out the random effects.
 
 ``` r
 set.seed(222)
+
+dat1 <- filter(data, ID==1)
 
 out <- lapply(1:10, function(i) {
   
   mod %>%
     param(exBoot[i,]) %>%
     zero_re() %>%
-    ev(amt = 100, ii = 24, addl = 2) %>%
+    data_set(dat1) %>%
     mrgsim(Req = "DV", end = 96) %>%
     mutate(rep = i)
   
 }) %>% bind_rows
 ```
 
+Now, we have one "individual" simulated from 10 different bootstrap parameter sets
+
 ``` r
-ggplot(out, aes(time,DV,group=rep)) + geom_line()
+ggplot(out, aes(time,DV,group=rep)) + geom_line() + theme_bw() 
 ```
 
-![](img/bootstrap-unnamed-chunk-16-1.png)
+![](img/bootstrap-unnamed-chunk-19-1.png)
 
 Session Info
 ============
@@ -199,61 +247,74 @@ Session Info
 devtools::session_info()
 ```
 
-    . Session info -------------------------------------------------------------
-
+    . ─ Session info ──────────────────────────────────────────────────────────
     .  setting  value                       
-    .  version  R version 3.4.2 (2017-09-28)
+    .  version  R version 3.5.0 (2018-04-23)
+    .  os       macOS Sierra 10.12.6        
     .  system   x86_64, darwin15.6.0        
     .  ui       X11                         
     .  language (EN)                        
     .  collate  en_US.UTF-8                 
-    .  tz       America/New_York            
-    .  date     2018-01-25
-
-    . Packages -----------------------------------------------------------------
-
-    .  package       * version     date       source                         
-    .  assertthat      0.2.0       2017-04-11 CRAN (R 3.4.0)                 
-    .  backports       1.1.1       2017-09-25 CRAN (R 3.4.1)                 
-    .  base          * 3.4.2       2017-10-04 local                          
-    .  bindr           0.1         2016-11-13 CRAN (R 3.4.0)                 
-    .  bindrcpp        0.2         2017-06-17 cran (@0.2)                    
-    .  colorspace      1.3-2       2016-12-14 CRAN (R 3.4.0)                 
-    .  compiler        3.4.2       2017-10-04 local                          
-    .  datasets      * 3.4.2       2017-10-04 local                          
-    .  devtools        1.13.3      2017-08-02 CRAN (R 3.4.2)                 
-    .  digest          0.6.13      2017-12-14 cran (@0.6.13)                 
-    .  dplyr         * 0.7.4       2017-09-28 CRAN (R 3.4.2)                 
-    .  evaluate        0.10.1      2017-06-24 CRAN (R 3.4.0)                 
-    .  ggplot2       * 2.2.1       2016-12-30 CRAN (R 3.4.0)                 
-    .  glue            1.2.0.9000  2018-01-12 Github (tidyverse/glue@1592ee1)
-    .  graphics      * 3.4.2       2017-10-04 local                          
-    .  grDevices     * 3.4.2       2017-10-04 local                          
-    .  grid            3.4.2       2017-10-04 local                          
-    .  gtable          0.2.0       2016-02-26 CRAN (R 3.4.0)                 
-    .  htmltools       0.3.6       2017-04-28 CRAN (R 3.4.0)                 
-    .  knitr           1.18        2017-12-27 cran (@1.18)                   
-    .  labeling        0.3         2014-08-23 CRAN (R 3.4.0)                 
-    .  lazyeval        0.2.1       2017-10-29 cran (@0.2.1)                  
-    .  magrittr        1.5         2014-11-22 CRAN (R 3.4.0)                 
-    .  memoise         1.1.0       2017-04-21 CRAN (R 3.4.0)                 
-    .  methods       * 3.4.2       2017-10-04 local                          
-    .  mrgsolve      * 0.8.10.9005 2018-01-22 local                          
-    .  munsell         0.4.3       2016-02-13 CRAN (R 3.4.0)                 
-    .  pkgconfig       2.0.1       2017-03-21 CRAN (R 3.4.0)                 
-    .  plyr            1.8.4       2016-06-08 CRAN (R 3.4.0)                 
-    .  R6              2.2.2       2017-06-17 CRAN (R 3.4.0)                 
-    .  Rcpp            0.12.14     2017-11-23 cran (@0.12.14)                
-    .  RcppArmadillo   0.8.100.1.0 2017-10-11 CRAN (R 3.4.2)                 
-    .  rlang           0.1.6       2017-12-21 cran (@0.1.6)                  
-    .  rmarkdown       1.8         2017-11-17 cran (@1.8)                    
-    .  rprojroot       1.2         2017-01-16 CRAN (R 3.4.0)                 
-    .  scales          0.5.0       2017-08-24 CRAN (R 3.4.1)                 
-    .  stats         * 3.4.2       2017-10-04 local                          
-    .  stringi         1.1.5       2017-04-07 CRAN (R 3.4.2)                 
-    .  stringr         1.2.0       2017-02-18 CRAN (R 3.4.2)                 
-    .  tibble          1.3.4       2017-08-22 CRAN (R 3.4.1)                 
-    .  tools           3.4.2       2017-10-04 local                          
-    .  utils         * 3.4.2       2017-10-04 local                          
-    .  withr           2.1.0.9000  2017-12-16 Github (r-lib/withr@fe81c00)   
-    .  yaml            2.1.16      2017-12-12 CRAN (R 3.4.2)
+    .  ctype    en_US.UTF-8                 
+    .  tz       America/Chicago             
+    .  date     2018-12-18                  
+    . 
+    . ─ Packages ──────────────────────────────────────────────────────────────
+    .  package       * version     date       lib source        
+    .  assertthat      0.2.0       2017-04-11 [1] CRAN (R 3.4.0)
+    .  backports       1.1.2       2017-12-13 [1] CRAN (R 3.5.0)
+    .  bindr           0.1.1       2018-03-13 [1] CRAN (R 3.4.4)
+    .  bindrcpp      * 0.2.2       2018-03-29 [1] CRAN (R 3.5.0)
+    .  callr           3.1.0       2018-12-10 [1] CRAN (R 3.5.0)
+    .  cli             1.0.1       2018-09-25 [1] CRAN (R 3.5.0)
+    .  colorspace      1.3-2       2016-12-14 [1] CRAN (R 3.5.0)
+    .  crayon          1.3.4       2017-09-16 [1] CRAN (R 3.4.1)
+    .  desc            1.2.0       2018-05-01 [1] CRAN (R 3.5.0)
+    .  devtools        2.0.1       2018-10-26 [1] CRAN (R 3.5.0)
+    .  digest          0.6.18      2018-10-10 [1] CRAN (R 3.5.0)
+    .  dplyr         * 0.7.8       2018-11-10 [1] CRAN (R 3.5.0)
+    .  evaluate        0.12        2018-10-09 [1] CRAN (R 3.5.0)
+    .  fs              1.2.6       2018-08-23 [1] CRAN (R 3.5.0)
+    .  ggplot2       * 3.1.0       2018-10-25 [1] CRAN (R 3.5.0)
+    .  glue            1.3.0       2018-07-17 [1] CRAN (R 3.5.0)
+    .  gtable          0.2.0       2016-02-26 [1] CRAN (R 3.4.0)
+    .  htmltools       0.3.6       2017-04-28 [1] CRAN (R 3.5.0)
+    .  knitr           1.21        2018-12-10 [1] CRAN (R 3.5.0)
+    .  labeling        0.3         2014-08-23 [1] CRAN (R 3.4.0)
+    .  lattice         0.20-38     2018-11-04 [1] CRAN (R 3.5.0)
+    .  lazyeval        0.2.1       2017-10-29 [1] CRAN (R 3.5.0)
+    .  magrittr        1.5         2014-11-22 [1] CRAN (R 3.4.0)
+    .  memoise         1.1.0       2017-04-21 [1] CRAN (R 3.4.0)
+    .  mrgsolve      * 0.8.12.9000 2018-12-16 [1] local         
+    .  munsell         0.5.0       2018-06-12 [1] CRAN (R 3.5.0)
+    .  pillar          1.3.0       2018-07-14 [1] CRAN (R 3.5.0)
+    .  pkgbuild        1.0.2       2018-10-16 [1] CRAN (R 3.5.0)
+    .  pkgconfig       2.0.2       2018-08-16 [1] CRAN (R 3.5.0)
+    .  pkgload         1.0.2       2018-10-29 [1] CRAN (R 3.5.0)
+    .  plyr            1.8.4       2016-06-08 [1] CRAN (R 3.5.0)
+    .  prettyunits     1.0.2       2015-07-13 [1] CRAN (R 3.4.0)
+    .  processx        3.2.1       2018-12-05 [1] CRAN (R 3.5.0)
+    .  ps              1.2.1       2018-11-06 [1] CRAN (R 3.5.0)
+    .  purrr           0.2.5       2018-05-29 [1] CRAN (R 3.5.0)
+    .  R6              2.3.0       2018-10-04 [1] CRAN (R 3.5.0)
+    .  Rcpp            1.0.0       2018-11-07 [1] CRAN (R 3.5.0)
+    .  RcppArmadillo   0.9.200.5.0 2018-11-28 [1] CRAN (R 3.5.0)
+    .  remotes         2.0.2       2018-10-30 [1] CRAN (R 3.5.0)
+    .  rlang           0.3.0.1     2018-10-25 [1] CRAN (R 3.5.0)
+    .  rmarkdown       1.11        2018-12-08 [1] CRAN (R 3.5.0)
+    .  rprojroot       1.3-2       2018-01-03 [1] CRAN (R 3.4.2)
+    .  scales          1.0.0       2018-08-09 [1] CRAN (R 3.5.0)
+    .  sessioninfo     1.1.1       2018-11-05 [1] CRAN (R 3.5.0)
+    .  stringi         1.2.4       2018-07-20 [1] CRAN (R 3.5.0)
+    .  stringr         1.3.1       2018-05-10 [1] CRAN (R 3.5.0)
+    .  sys             2.1         2018-11-13 [1] CRAN (R 3.5.0)
+    .  testthat        2.0.1       2018-10-13 [1] CRAN (R 3.5.0)
+    .  tibble          1.4.2       2018-01-22 [1] CRAN (R 3.5.0)
+    .  tidyselect      0.2.5       2018-10-11 [1] CRAN (R 3.5.0)
+    .  usethis         1.4.0       2018-08-14 [1] CRAN (R 3.5.0)
+    .  withr           2.1.2       2018-03-15 [1] CRAN (R 3.5.0)
+    .  xfun            0.4         2018-10-23 [1] CRAN (R 3.5.0)
+    .  yaml            2.2.0       2018-07-25 [1] CRAN (R 3.5.0)
+    . 
+    . [1] /Users/kyleb/Rlibs
+    . [2] /Library/Frameworks/R.framework/Versions/3.5/Resources/library

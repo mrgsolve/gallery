@@ -4,7 +4,7 @@ $PROB
 $PARAM  WT=70
 
 $THETA
-1 24 0.5
+log(1)  log(24) log(0.5)
 
 $PKMODEL cmt="GUT CENT", depot=TRUE
 

@@ -42,6 +42,35 @@ and a 1x1 `$SIGMA` matrix
 smat(mod)
 ```
 
+# Generate an example data template
+
+```{r}
+data <- ev_rep(ev(amt = 100, ii = 24, addl = 2), ID = 1:5)
+```
+
+100 mg daily x3 in 5 individuals
+
+```{r}
+data
+```
+
+
+## Test simulation
+
+
+The basic simulation we will be doing is
+```{r}
+set.seed(98765)
+
+mod %>%
+  data_set(data) %>%
+  mrgsim(Req = "DV", end = 96)  %>% 
+  plot()
+```
+
+Just three doses, simulating out to 96 hours.  From here, we will do this 
+test simulation for several replicates, with each replicate drawing a different
+set of bootstrap parameters.
 
 # Example bootstrap output
 
@@ -116,6 +145,9 @@ because `THETA1`, `THETA2`, and `THETA3` are listed in `$PARAM`
 `$OMEGA` is a 3x3 matrix
 1.  Use `smat` to update the `$SIGMA` matrix
 
+In the simulation loop, `i` indicates the replicate number, or the `ith`
+set of bootstrap parameter estimates.
+
 ```{r}
 set.seed(222)
 
@@ -125,7 +157,7 @@ out <- lapply(1:10, function(i) {
     param(exBoot[i,]) %>%
     omat(omegas[[i]]) %>%
     smat(sigmas[[i]]) %>%
-    ev(amt = 100, ii = 24, addl = 2) %>%
+    data_set(data) %>%
     mrgsim(Req = "DV", end = 96) %>%
     mutate(rep = i)
   
@@ -133,32 +165,38 @@ out <- lapply(1:10, function(i) {
 ```
 
 
+In the output, we have 10 replicates, each with five individuals
 ```{r}
-ggplot(out, aes(time,DV,group=rep)) + geom_line()
+ggplot(out, aes(time,DV,group=ID)) + geom_line() + theme_bw() + facet_wrap(~rep)
 ```
 
 # Simulate with only uncertainty in the `THETA`s
 
-All the uncertainty comes from the bootstrap `THETA`s
+Here, we just drop out the update to `OMEGA` and `SIGMA` and 
+zero out the random effects.
 
 ```{r}
 set.seed(222)
+
+dat1 <- filter(data, ID==1)
 
 out <- lapply(1:10, function(i) {
   
   mod %>%
     param(exBoot[i,]) %>%
     zero_re() %>%
-    ev(amt = 100, ii = 24, addl = 2) %>%
+    data_set(dat1) %>%
     mrgsim(Req = "DV", end = 96) %>%
     mutate(rep = i)
   
 }) %>% bind_rows
 ```
 
+Now, we have one "individual" simulated from 10 different bootstrap 
+parameter sets
 
 ```{r}
-ggplot(out, aes(time,DV,group=rep)) + geom_line()
+ggplot(out, aes(time,DV,group=rep)) + geom_line() + theme_bw() 
 ```
 
 # Session Info
