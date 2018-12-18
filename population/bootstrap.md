@@ -1,6 +1,7 @@
 Simulate from bootstrap estimates
 ================
 
+-   [Scope and source code](#scope-and-source-code)
 -   [Load an example model](#load-an-example-model)
 -   [Generate an example data template](#generate-an-example-data-template)
     -   [Test simulation](#test-simulation)
@@ -10,6 +11,17 @@ Simulate from bootstrap estimates
 -   [Simulate](#simulate)
 -   [Simulate with only uncertainty in the `THETA`s](#simulate-with-only-uncertainty-in-the-thetas)
 -   [Session Info](#session-info)
+
+Scope and source code
+=====================
+
+This document demonstrates how to use an mrgsolve model and bootstrap parameter estiamtes to create replicate simulations that incorporate uncertainty in the fixed effect (e.g. `THETA`) and random effect (e.g. `OMEGA` and `SIGMA`) parameters.
+
+**Source code**
+
+The example code for this document can be reached [here](bootstrap.Rmd) and the example model [here](bootstrap.cpp). The bootstrap data set is bundled with the mrgsolve package.
+
+**Required packages**
 
 ``` r
 library(mrgsolve)

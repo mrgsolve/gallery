@@ -11,13 +11,28 @@ output:
 knitr::opts_chunk$set(comment = '.', fig.path = "img/bootstrap-")
 ```
 
+# Scope and source code
 
 
+This document demonstrates how to use an mrgsolve model and bootstrap 
+parameter estiamtes to create replicate simulations that incorporate
+uncertainty in the fixed effect (e.g. `THETA`) and random effect (e.g.
+`OMEGA` and `SIGMA`) parameters.
+
+__Source code__ 
+
+The example code for this document can be reached [here](bootstrap.Rmd) and 
+the example model [here](bootstrap.cpp).  The bootstrap data set is bundled
+with the mrgsolve package.
+
+
+__Required packages__
 ```{r, message = FALSE}
 library(mrgsolve)
 library(dplyr)
 library(ggplot2)
 ```
+
 
 # Load an example model
 
