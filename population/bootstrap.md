@@ -86,7 +86,7 @@ Test simulation
 The basic simulation we will be doing is
 
 ``` r
-set.seed(98765)
+set.seed(987652)
 
 mod %>%
   data_set(data) %>%
