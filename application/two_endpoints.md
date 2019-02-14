@@ -338,7 +338,7 @@ ofv2 <- function(p,data,pred=FALSE) {
 ```
 
 The function is mostly the same, but now we’ll slice the simulation
-output to first grab the concentratoins and then grab the urine
+output to first grab the concentrations and then grab the urine
 concentrations. **NOTE**: this works because the simulation output has
 the exact same design / setup as the input data. So we slice both the
 input data and the output by the same indices so we can be sure the
