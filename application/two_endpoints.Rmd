@@ -112,7 +112,7 @@ dose <- mutate(dose, time = 0, amt = 100, evid = 1, cmt = 1)
 
 We make this `dvtype` 0 and set `DV` to `NA` (it is dosing record
 so we don't want this to contribute information to parameter 
-estimates
+estimates)
 
 ```{r}
 dose <- mutate(dose, dvtype = 0, DV = NA)
