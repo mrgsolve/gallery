@@ -1,6 +1,27 @@
 Fit a model with multiple endpoints
 ================
 
+  - [Setup](#setup)
+  - [Exploratory data analysis](#exploratory-data-analysis)
+      - [Concentration versus time](#concentration-versus-time)
+      - [Cumulative amount in urine versus
+        time](#cumulative-amount-in-urine-versus-time)
+  - [The model](#the-model)
+  - [Assemble a model estimation data
+    set](#assemble-a-model-estimation-data-set)
+      - [Combine concentration and urine
+        data](#combine-concentration-and-urine-data)
+      - [Add a dosing record](#add-a-dosing-record)
+  - [Estimate parameters: Approach I](#estimate-parameters-approach-i)
+      - [Objective function](#objective-function)
+      - [Optimize](#optimize)
+      - [Results](#results)
+  - [Estimate parameters: Approach II](#estimate-parameters-approach-ii)
+      - [Some more data grooming](#some-more-data-grooming)
+      - [The objective function](#the-objective-function)
+      - [Optimize](#optimize-1)
+      - [The results](#the-results)
+
 # Setup
 
 ``` r
@@ -108,7 +129,9 @@ you’ll have to use a data set with `dvtype` defined. But you could still
 use this model to simulate any compartment / output at any time … just
 ignore `DV` and access `CP` or `UR`.
 
-# Data assembly
+# Assemble a model estimation data set
+
+## Combine concentration and urine data
 
 First, add a `DV` column to both data sets and set a flag for the type
 of each `DV`
@@ -158,7 +181,9 @@ obs
     . 14     1 48         1  0.379     0     0     0
     . 15     1 72         2 16.9       0     0     0
 
-Just like we did in the Indometh example, pull a single row and set up
+## Add a dosing record
+
+Just like we did in the `Indometh` example, pull a single row and set up
 the dosing
 
 ``` r
@@ -215,6 +240,8 @@ data
 
 # Estimate parameters: Approach I
 
+## Objective function
+
 ``` r
 ofv1 <- function(p, data, yobs, dvcol = "DV", pred=FALSE) {
   p <- lapply(p, exp)
@@ -227,12 +254,17 @@ ofv1 <- function(p, data, yobs, dvcol = "DV", pred=FALSE) {
 }
 ```
 
+## Optimize
+
 ``` r
 yobs <- data[["DV"]]
+
 theta <- log(c(CLnr = 2, V=10, KA = 1, CLr = 1))
 
 fit <- minqa::newuoa(theta, ofv1, data=data, yobs=yobs)
 ```
+
+## Results
 
 The way we set this up, the true parameters are in the model
 
@@ -322,6 +354,8 @@ yur   <- data$DV[iur]
 yobs  <- c(yplas,yur)
 ```
 
+## The objective function
+
 The OFV function will now have to modified as well
 
 ``` r
@@ -349,6 +383,8 @@ the exact same design / setup as the input data. So we slice both the
 input data and the output by the same indices so we can be sure the
 observed and simulated values match up.
 
+## Optimize
+
 Ok, now try it out:
 
 ``` r
@@ -356,6 +392,8 @@ theta <- log(c(CLnr = 2, V =12, KA = 1, CLr = 1))
 
 fit <- minqa::newuoa(par=theta, fn=ofv2, data=data)
 ```
+
+## The results
 
 ``` r
 as.numeric(param(mod))
