@@ -214,8 +214,8 @@ data
 ofv1 <- function(p, data, yobs, dvcol = "DV", pred=FALSE) {
   p <- lapply(p, exp)
   names(p) <- names(theta)
-  mod <- update(mod, param = p)
-  out <- mrgsim_d(mod,data,output="df")
+  mod <- param(mod,p)
+  out <- mrgsim_d(mod, data, output="df")
   if(pred) return(as_tibble(out))
   y_hat <- out[[dvcol]]
   sum((y_hat-yobs)^2,na.rm=TRUE)
