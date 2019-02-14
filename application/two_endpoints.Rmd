@@ -43,8 +43,7 @@ urine
 
 ggplot(urine, aes(time,UR)) + 
   geom_point() + geom_line() + 
-  ylab("Cumulative amount in urine") + 
-  xlim(0,48)
+  ylab("Cumulative amount in urine")
 ```
 
 # The model

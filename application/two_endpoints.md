@@ -85,8 +85,7 @@ urine
 ``` r
 ggplot(urine, aes(time,UR)) + 
   geom_point() + geom_line() + 
-  ylab("Cumulative amount in urine") + 
-  xlim(0,48)
+  ylab("Cumulative amount in urine")
 ```
 
 ![](two_endpoints_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
