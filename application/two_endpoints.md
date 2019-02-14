@@ -126,7 +126,7 @@ obs <- select(obs,ID,time,dvtype,DV)
 ```
 
 And we’ll add some columns that to make mrgsolve happy; this is the
-observations par data set
+observations part of the data set
 
 ``` r
 obs <- mutate(obs, evid = 0, cmt = 0, amt = 0)
