@@ -47,7 +47,10 @@ ggplot(urine, aes(time,UR)) +
   xlim(0,48)
 ```
 
+# The model
 
+The data above were simulated with this model, including the parameter
+values you see below.
 
 ```{r}
 mod <- mread("two_endpoints.cpp")

@@ -70,6 +70,11 @@ ggplot(urine, aes(time,UR)) +
 
 ![](two_endpoints_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
 
+# The model
+
+The data above were simulated with this model, including the parameter
+values you see below.
+
 ``` r
 mod <- mread("two_endpoints.cpp")
 ```
