@@ -272,7 +272,7 @@ fit <- minqa::newuoa(par=theta, fn=ofv2, data=data)
 ```{r}
 as.numeric(param(mod))
 
-fit$par
+exp(fit$par)
 ```
 
 
@@ -288,7 +288,7 @@ ggplot() +
 ggplot() + 
   geom_point(data= data[iur,], aes(time,DV), size = 4) + 
   geom_line(data=prd, aes(time,UR),col="cornflowerblue", lwd=1) +
-  scale_y_log10() + ylab("Cumulative amout in urine")
+  ylab("Cumulative amout in urine")
 
 ```
 

@@ -403,10 +403,10 @@ as.numeric(param(mod))
     .   0.97  22.30   1.90   0.20   0.00
 
 ``` r
-fit$par
+exp(fit$par)
 ```
 
-    . [1] -0.08714504  3.14065098  0.63440921 -1.64124772
+    . [1]  0.9165441 23.1189119  1.8859076  0.1937382
 
 And plot
 
@@ -425,7 +425,7 @@ ggplot() +
 ggplot() + 
   geom_point(data= data[iur,], aes(time,DV), size = 4) + 
   geom_line(data=prd, aes(time,UR),col="cornflowerblue", lwd=1) +
-  scale_y_log10() + ylab("Cumulative amout in urine")
+  ylab("Cumulative amout in urine")
 ```
 
 ![](two_endpoints_files/figure-gfm/unnamed-chunk-26-2.png)<!-- -->
