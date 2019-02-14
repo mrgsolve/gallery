@@ -1,0 +1,281 @@
+---
+title: Fit a model with multiple endpoints
+output:
+  github_document:
+    toc: true
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(comment = '.', message = FALSE, warning = FALSE)
+```
+
+
+# Setup 
+```{r}
+library(mrgsolve)
+library(tidyverse)
+theme_set(theme_bw())
+```
+
+
+# Exploratory data analysis
+
+## Concentration versus time
+
+We have plasma concentrations fairly early after the dose and 
+runing out to 48 hours:
+
+```{r}
+conc <- readRDS("two_endpoints_plasma.RDS")
+
+conc
+
+ggplot(conc, aes(time,CP)) + 
+  geom_point() + geom_line() + 
+  ylab("Plasma concentration") + ylim(0,5)
+```
+
+## Cumulative amount in urine versus time
+
+```{r}
+urine <- readRDS("two_endpoints_urine.RDS")
+
+urine
+
+ggplot(urine, aes(time,UR)) + 
+  geom_point() + geom_line() + 
+  ylab("Cumulative amount in urine") + 
+  xlim(0,48)
+```
+
+
+
+```{r}
+mod <- mread("two_endpoints.cpp")
+```
+
+```{c, eval=FALSE, code = mod@code}
+
+```
+
+Check out the `[ TABLE ]` block.  We check the value of `dvtype` and 
+return concentration if `dvtype==1` and urine amount if `dvtype==2`.  
+
+Note that there isn't really a loss of generality here.  You can 
+still simulate from the model as you wish.  In order for `DV` to be 
+meaningful, you'll have to use a data set with `dvtype` defined.  But
+you could still use this model to simulate any compartment / output
+at any time ... just ignore `DV` and access `CP` or `UR`.
+
+
+# Data assembly
+
+First, add a `DV` column to both data sets and set a flag
+for the type of each `DV`
+```{r}
+conc <-  mutate(conc,  DV = CP, dvtype = 1)
+urine <- mutate(urine, DV = UR, dvtype = 2)
+```
+
+
+Then make a single data set sorted by time of observation
+```{r}
+obs <- bind_rows(conc,urine) %>% arrange(time)
+```
+
+No longer need `CP` or `UR`
+```{r}
+obs <- select(obs,ID,time,dvtype,DV)
+```
+
+And we'll add some columns that to make mrgsolve happy; this is the
+observations par data set
+```{r}
+obs <- mutate(obs, evid = 0, cmt = 0, amt = 0)
+
+obs
+```
+
+Just like we did in the Indometh example, pull a single row
+and set up the dosing
+
+```{r}
+dose <- obs %>% slice(1)
+
+dose
+```
+
+Now, set up this chunk to be doses (not observations)
+
+```{r}
+dose <- mutate(dose, time = 0, amt = 100, evid = 1, cmt = 1)
+```
+
+We make this `dvtype` 0 and set `DV` to `NA` (it is dosing record
+so we don't want this to contribute information to parameter 
+estimates
+
+```{r}
+dose <- mutate(dose, dvtype = 0, DV = NA)
+```
+
+
+Then bind it all together and arrange
+
+```{r}
+data <- bind_rows(obs,dose) %>% arrange(time)
+
+data
+```
+
+# Estimate parameters: Approach I
+
+
+```{r}
+
+ofv1 <- function(p, data, yobs, dvcol = "DV", pred=FALSE) {
+  p <- lapply(p, exp)
+  names(p) <- names(theta)
+  mod <- update(mod, param = p)
+  out <- mrgsim_d(mod,data,output="df")
+  if(pred) return(as_tibble(out))
+  y_hat <- out[[dvcol]]
+  sum((y_hat-yobs)^2,na.rm=TRUE)
+}
+```
+
+```{r}
+yobs <- data[["DV"]]
+theta <- log(c(CLnr = 2, V=10, KA = 1, CLr = 1))
+
+fit <- minqa::newuoa(theta, ofv1, data=data, yobs=yobs)
+```
+
+The way we set this up, the true parameters are in the model
+
+```{r}
+as.numeric(param(mod))
+```
+
+```{r}
+exp(fit$par)
+```
+
+
+And make the plots for concentration and urine cumulative amount; 
+we use the `dose` data set (above) to get the smooth line
+
+```{r}
+prd <- ofv1(fit$par,data = dose, pred = TRUE)
+```
+
+
+```{r}
+ggplot() + 
+  geom_point(data=conc, aes(time,CP), size = 4) + 
+  geom_line(data=prd, aes(time,CP),col="firebrick", lwd=1) +
+  scale_y_log10() + ylab("Plasma concentration")
+
+ggplot() + 
+  geom_point(data= urine, aes(time,UR), size = 4) + 
+  geom_line(data=prd, aes(time,UR),col="cornflowerblue", lwd=1) +
+   ylab("Cumulative amout in urine")
+
+```
+
+
+# Estimate parameters: Approach II
+
+I still think approach I is simpler and easier to pull off without 
+loss of flexibility for simulation.
+
+But if you didn't want to do the `DV` approach, here is another way.
+
+
+## Some more data grooming
+
+First, find which rows are type 1 (concentration) and which 
+are type 2 (urine):
+
+```{r}
+iconc <- which(data$dvtype==1)
+iur   <- which(data$dvtype==2)
+```
+
+So we can use this `iur` vector to grab just the urine amounts
+```{r}
+iur
+
+data[iur,]
+```
+
+Now, create a vector of all the concentrations followed by all 
+the urine amounts; the final product is `yobs`
+
+```{r}
+yplas <- data$DV[iconc]
+yur   <- data$DV[iur]
+yobs  <- c(yplas,yur)
+```
+
+
+The OFV function will now have to modified as well
+
+```{r}
+ofv2 <- function(p,data,pred=FALSE) {
+  p <- lapply(p, exp)
+  names(p) <- names(theta)
+  mod <- param(mod,p)
+  out <- mrgsim_d(mod,data)
+  if(pred) return(as_tibble(out))
+  
+  ## The action is here:
+  yplas_hat <- out$CP[iconc]
+  yur_hat   <- out$UR[iur]
+  y_hat     <- c(yplas_hat,yur_hat)
+  ##---------------------------
+  
+  sum((y_hat-yobs)^2)
+}
+```
+
+The function is mostly the same, but now we'll slice the simulation 
+output to first grab the concentrations and then grab the urine
+concentrations.  __NOTE__: this works because the simulation output
+has the exact same design / setup as the input data.  So we slice both 
+the input data and the output by the same indices so we can be sure 
+the observed and simulated values match up.
+
+
+Ok, now try it out:
+
+```{r}
+theta <- log(c(CLnr = 2, V =12, KA = 1, CLr = 1))
+
+fit <- minqa::newuoa(par=theta, fn=ofv2, data=data)
+```
+
+```{r}
+as.numeric(param(mod))
+
+fit$par
+```
+
+
+And plot
+```{r}
+prd <- ofv2(fit$par,data = dose, pred = TRUE)
+
+ggplot() + 
+  geom_point(data= data[iconc,], aes(time,DV), size = 4) + 
+  geom_line(data=prd, aes(time,CP),col="firebrick", lwd=1) +
+  scale_y_log10() + ylab("Plasma concentration")
+
+ggplot() + 
+  geom_point(data= data[iur,], aes(time,DV), size = 4) + 
+  geom_line(data=prd, aes(time,UR),col="cornflowerblue", lwd=1) +
+  scale_y_log10() + ylab("Cumulative amout in urine")
+
+```
+
+

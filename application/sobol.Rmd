@@ -203,9 +203,7 @@ hiv_run <- function(x) {
     pull(auc)
 }
 
-x <- soboljansen(hiv_run, 
-               X1=x1, X2=x2, 
-               nboot=100)
+x <- soboljansen(hiv_run, X1=x1, X2=x2, nboot=100)
 
 ```
 
