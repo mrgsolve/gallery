@@ -34,8 +34,8 @@ theme_set(theme_bw())
 
 ## Concentration versus time
 
-We have plasma concentrations fairly early after the dose and runing out
-to 48 hours:
+We have plasma concentrations fairly early after the dose and running
+out to 48 hours:
 
 ``` r
 conc <- readRDS("two_endpoints_plasma.RDS")
