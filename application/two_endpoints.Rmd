@@ -280,4 +280,7 @@ ggplot() +
 
 ```
 
+```{r,include = FALSE}
+saveRDS(file = "two_endpoints_data.RDS", data)
+```
 
