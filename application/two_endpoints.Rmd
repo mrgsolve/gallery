@@ -177,6 +177,8 @@ And make the plots for concentration and urine cumulative amount;
 we use the `dose` data set (above) to get the smooth line
 
 ```{r}
+library(nlme)
+
 prd <- ofv1(fit$par,data = dose, pred = TRUE)
 
 prd <- ofv1(fit$par, data = data, pred=TRUE)

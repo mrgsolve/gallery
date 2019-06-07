@@ -102,7 +102,8 @@ mod <- mread("two_endpoints.cpp")
 ``` c
 [ SET ] end = 72, delta = 0.25, add = 0.05
 
-[ PARAM ] CLnr = 0.97, V = 22.3, KA = 1.9, CLr = 0.2, dvtype = 0
+[ PARAM ] CLnr = 0.97, V = 22.3, KA = 1.9, CLr = 0.2, dvtype = 0, 
+sigma1 = 1, sigma2 = 1
 
 [ CMT ] GUT CENT URINE
 
@@ -117,6 +118,7 @@ dxdt_URINE =  CLr*(CENT/V);
 capture CP = (CENT/V)*exp(EPS(1));
 capture UR = URINE*exp(EPS(2));
 capture DV = dvtype ==2 ? UR : CP;
+capture sigma = dvtype==2? sigma2 : sigma1;
 ```
 
 Check out the `[ TABLE ]` block. We check the value of `dvtype` and
@@ -249,7 +251,9 @@ ofv1 <- function(p, data, yobs, dvcol = "DV", pred=FALSE) {
   out <- mrgsim_d(mod, data, output="df")
   if(pred) return(as_tibble(out))
   y_hat <- out[[dvcol]]
-  sum((y_hat-yobs)^2,na.rm=TRUE)
+  #sum((y_hat-yobs)^2,na.rm=TRUE)
+  llike <- dnorm(yobs, y_hat, out[["sigma"]], log = TRUE)
+  return(-1*sum(llike, na.rm=TRUE))
 }
 ```
 
@@ -258,9 +262,9 @@ ofv1 <- function(p, data, yobs, dvcol = "DV", pred=FALSE) {
 ``` r
 yobs <- data[["DV"]]
 
-theta <- log(c(CLnr = 2, V=10, KA = 1, CLr = 1))
+theta <- log(c(CLnr = 2, V=10, KA = 1, CLr = 1, sigma1=1, sigma2=1))
 
-fit <- minqa::newuoa(theta, ofv1, data=data, yobs=yobs)
+fit <- nloptr::newuoa(theta, ofv1, data=data, yobs=yobs)
 ```
 
 ## Results
@@ -271,21 +275,32 @@ The way we set this up, the true parameters are in the model
 as.numeric(param(mod))
 ```
 
-    .   CLnr      V     KA    CLr dvtype 
-    .   0.97  22.30   1.90   0.20   0.00
+    .   CLnr      V     KA    CLr dvtype sigma1 sigma2 
+    .   0.97  22.30   1.90   0.20   0.00   1.00   1.00
 
 ``` r
 exp(fit$par)
 ```
 
-    . [1]  0.9165103 23.1198956  1.8864036  0.1937363
+    . [1]  0.9238533 22.9345229  1.8367364  0.1941290  0.3579444  0.5502006
 
 And make the plots for concentration and urine cumulative amount; we use
 the `dose` data set (above) to get the smooth line
 
 ``` r
+library(nlme)
+
 prd <- ofv1(fit$par,data = dose, pred = TRUE)
+
+prd <- ofv1(fit$par, data = data, pred=TRUE)
+data <- mutate(data, PRED = prd[["DV"]], RES=DV-PRED)
+
+h <- fdHess(fit$par, ofv1, data = data, yobs=yobs)
+
+h$Hessian %>% solve %>% diag %>% sqrt
 ```
+
+    . [1] 0.02121075 0.05928664 0.14850905 0.03558959 0.23648334 0.29009604
 
 ``` r
 ggplot() + 
@@ -334,15 +349,15 @@ iur
 data[iur,]
 ```
 
-    . # A tibble: 6 x 7
-    .      ID  time dvtype    DV  evid   cmt   amt
-    .   <dbl> <dbl>  <dbl> <dbl> <dbl> <dbl> <dbl>
-    . 1     1     2      2  1.23     0     0     0
-    . 2     1    10      2  7.25     0     0     0
-    . 3     1    20      2  9.90     0     0     0
-    . 4     1    30      2 12.7      0     0     0
-    . 5     1    40      2 15.4      0     0     0
-    . 6     1    72      2 16.9      0     0     0
+    . # A tibble: 6 x 9
+    .      ID  time dvtype    DV  evid   cmt   amt  PRED     RES
+    .   <dbl> <dbl>  <dbl> <dbl> <dbl> <dbl> <dbl> <dbl>   <dbl>
+    . 1     1     2      2  1.23     0     0     0  1.20  0.0384
+    . 2     1    10      2  7.25     0     0     0  6.41  0.843 
+    . 3     1    20      2  9.90     0     0     0 10.6  -0.734 
+    . 4     1    30      2 12.7      0     0     0 13.2  -0.527 
+    . 5     1    40      2 15.4      0     0     0 14.8   0.528 
+    . 6     1    72      2 16.9      0     0     0 16.8   0.0897
 
 Now, create a vector of all the concentrations followed by all the urine
 amounts; the final product is `yobs`
@@ -398,8 +413,8 @@ fit <- minqa::newuoa(par=theta, fn=ofv2, data=data)
 as.numeric(param(mod))
 ```
 
-    .   CLnr      V     KA    CLr dvtype 
-    .   0.97  22.30   1.90   0.20   0.00
+    .   CLnr      V     KA    CLr dvtype sigma1 sigma2 
+    .   0.97  22.30   1.90   0.20   0.00   1.00   1.00
 
 ``` r
 exp(fit$par)
