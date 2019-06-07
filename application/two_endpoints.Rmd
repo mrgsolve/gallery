@@ -144,7 +144,9 @@ ofv1 <- function(p, data, yobs, dvcol = "DV", pred=FALSE) {
   out <- mrgsim_d(mod, data, output="df")
   if(pred) return(as_tibble(out))
   y_hat <- out[[dvcol]]
-  sum((y_hat-yobs)^2,na.rm=TRUE)
+  #sum((y_hat-yobs)^2,na.rm=TRUE)
+  llike <- dnorm(yobs, y_hat, out[["sigma"]], log = TRUE)
+  return(-1*sum(llike, na.rm=TRUE))
 }
 ```
 
@@ -152,9 +154,9 @@ ofv1 <- function(p, data, yobs, dvcol = "DV", pred=FALSE) {
 ```{r}
 yobs <- data[["DV"]]
 
-theta <- log(c(CLnr = 2, V=10, KA = 1, CLr = 1))
+theta <- log(c(CLnr = 2, V=10, KA = 1, CLr = 1, sigma1=1, sigma2=1))
 
-fit <- minqa::newuoa(theta, ofv1, data=data, yobs=yobs)
+fit <- nloptr::newuoa(theta, ofv1, data=data, yobs=yobs)
 ```
 
 
@@ -176,6 +178,13 @@ we use the `dose` data set (above) to get the smooth line
 
 ```{r}
 prd <- ofv1(fit$par,data = dose, pred = TRUE)
+
+prd <- ofv1(fit$par, data = data, pred=TRUE)
+data <- mutate(data, PRED = prd[["DV"]], RES=DV-PRED)
+
+h <- fdHess(fit$par, ofv1, data = data, yobs=yobs)
+
+h$Hessian %>% solve %>% diag %>% sqrt
 ```
 
 
