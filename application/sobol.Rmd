@@ -16,7 +16,7 @@ knitr::opts_chunk$set(message = FALSE, warning = FALSE,
 # Reference / About
 Zhang XY, Trame MN, Lesko LJ, Schmidt S. __Sobol Sensitivity Analysis: A Tool to
 Guide the Development and Evaluation of Systems Pharmacology Models__. CPT
-Pharmacometrics Syst Pharmacol. 2015 Feb;4(2):69-79. doi: 10.1002/psp4.6. PubMed 
+Pharmacometrics Syst Pharmacol. 2015 Feb;4(2):69-79. doi: 10.1002/psp4.6. PubMed
 PMID: [27548289](https://www.ncbi.nlm.nih.gov/pubmed/27548289)
 
 This example replicates an analysis presented in the Zhang et al. paper, 
@@ -62,7 +62,7 @@ can be passed into the sobol function.
 gen_samples <- function(n, l, which = names(l), 
                         factor = c(0.01,100)) {
   
-  vars <- select_vars(names(l), !!(enquo(which)))
+  vars <- tidyselect::vars_select(names(l), !!(enquo(which)))
   
   l <- as.list(l)[vars]
   
@@ -101,8 +101,7 @@ parallel.  Ill keep it around for now.
 
 ```{r}
 sim_chunk <- function(mod, x) {
-  mrgsim_ei(x = mod, ev = sunev(), idata = x, obsonly = TRUE) %>% 
-    as_data_frame
+  mrgsim_ei(x = mod, ev = sunev(), idata = x, obsonly = TRUE, output="df")
 }
 ```
 
@@ -143,23 +142,23 @@ plot(x)
 x
 ```
 
-# The HIV model
 
-```{r}
+
+```{r, include=FALSE, eval=FALSE}
 
 ```
 
-```{r}
+```{r, include=FALSE, eval=FALSE}
 bound <- tribble(
   ~name, ~lower, ~upper,
-"s"	,1.00E-02	,50,
-"muT",	1.00E-04,	0.2,
-"r"	,1.00E-03,	50,
-"k1",	1.00E-07,	1.00E-03,
-"k2"	,1.00E-05	,1.00E-02,
-"mub"	,1.00E-01	,0.4,
-"N",	1	,2000,
-"muV",	1.00E-01,	10
+  "s"	,1.00E-02	,50,
+  "muT",	1.00E-04,	0.2,
+  "r"	,1.00E-03,	50,
+  "k1",	1.00E-07,	1.00E-03,
+  "k2"	,1.00E-05	,1.00E-02,
+  "mub"	,1.00E-01	,0.4,
+  "N",	1	,2000,
+  "muV",	1.00E-01,	10
 )
 
 mksamp <- function(bounds, n) {
@@ -168,48 +167,41 @@ mksamp <- function(bounds, n) {
     runif(n, xx$lower[1], xx$upper[1])  
   })
   names(out) <- bounds$name
-  return(as_data_frame(out))
+  return(as_tibble(out))
   
 }
 
 
-x1 <- as.data.frame(mksamp(bound,5000*8))
-x2 <- as.data.frame(mksamp(bound,5000*8))
+x1 <- as.data.frame(mksamp(bound,2000*8))
+x2 <- as.data.frame(mksamp(bound,2000*8))
 ```
 
 
 
-```{r}
+```{r, include=FALSE, eval=FALSE}
 
 
 mod <- mread_cache("hiv", "model")
 
-# mod
-# 
-# samp <- gen_samples(1000, 
-#                     param(mod),
-#                     c(s,muT,r,k1,k2,mub,N,muV),
-#                     factor = c(0.1,20))
-
 hiv_run <- function(x) {
-  out <- mrgsim_i(x = mod, 
-                  idata = x, 
-                  maxsteps = 50000, 
-                  delta = 1, 
-                  end = 2000)
-
-    group_by(out, ID) %>% 
+  out <- mrgsim_i(
+    x = mod, 
+    idata = x, 
+    maxsteps = 50000, 
+    delta = 5, 
+    end = 1500
+  )
+  
+  group_by(out, ID) %>% 
     summarise(auc = auc_partial(time,V)) %>% 
     pull(auc)
 }
 
 x <- soboljansen(hiv_run, X1=x1, X2=x2, nboot=100)
 
+plot(x)
+
 ```
 
 
-# Session
-```{r}
-devtools::session_info()
-```
 

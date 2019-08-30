@@ -1,27 +1,31 @@
 mrgsolve in Parallel
 ================
 Kyle Baron
-2018-06-26 09:31:40
+2019-08-29 22:18:41
 
--   [About](#about)
--   [An example model](#an-example-model)
--   [The `future.apply` package](#the-future.apply-package)
-    -   [Simulate with `future_lapply`](#simulate-with-future_lapply)
--   [Compare methods](#compare-methods)
-    -   [`future_lapply`](#future_lapply)
-    -   [`lapply`](#lapply)
-    -   [`mclapply`](#mclapply)
--   [Parallelize within data set](#parallelize-within-data-set)
+  - [About](#about)
+  - [An example model](#an-example-model)
+  - [The `future.apply` package](#the-future.apply-package)
+      - [Simulate with `future_lapply`](#simulate-with-future_lapply)
+  - [Compare methods](#compare-methods)
+      - [`future_lapply`](#future_lapply)
+      - [`lapply`](#lapply)
+      - [`mclapply`](#mclapply)
+  - [Parallelize within data set](#parallelize-within-data-set)
 
-About
-=====
+# About
 
-This vignette looks at options for parallelizing simulations with mrgsolve in a platform-independent way. We utilize the `future.apply` package (available on CRAN) to do this.
+This vignette looks at options for parallelizing simulations with
+mrgsolve in a platform-independent way. We utilize the `future.apply`
+package (available on CRAN) to do this.
 
-Your mileage may vary in terms of speedup factor. It is highly dependent on the problem you have. Also, with any method there is some overhead that needs to be taken into consideration when planning the simulations. It is very possible that your parallelized setup takes **longer** with the non-parallel setup.
+Your mileage may vary in terms of speedup factor. It is highly dependent
+on the problem you have. Also, with any method there is some overhead
+that needs to be taken into consideration when planning the simulations.
+It is very possible that your parallelized setup takes **longer** with
+the non-parallel setup.
 
-An example model
-================
+# An example model
 
 ``` r
 library(dplyr)
@@ -29,15 +33,14 @@ library(mrgsolve)
 mod <- mread("pk1", modlib())
 ```
 
-The `future.apply` package
-==========================
+# The `future.apply` package
 
 ``` r
 library(future.apply)
+Sys.setenv(R_FUTURE_FORK_ENABLE=TRUE)
 ```
 
-Simulate with `future_lapply`
------------------------------
+## Simulate with `future_lapply`
 
 Works pretty much like `lapply`
 
@@ -45,7 +48,8 @@ Works pretty much like `lapply`
 plan("multiprocess")
 ```
 
-Note: with `plan(multiprocess)`, you have to load the model shared object into the process. See `?laodso`.
+Note: with `plan(multiprocess)`, you have to load the model shared
+object into the process. See `?laodso`.
 
 ``` r
 e <- ev(amt = 100)
@@ -80,7 +84,7 @@ head(out)
 On macos or unix systems, you can use:
 
 ``` r
-plan("multicore")
+plan("multicore", workers=8)
 ```
 
 ``` r
@@ -106,14 +110,12 @@ head(out)
     . 5     1     3   4.98  85.4  4.27     1
     . 6     1     4   1.83  84.3  4.21     1
 
-Compare methods
-===============
+# Compare methods
 
-`future_lapply`
----------------
+## `future_lapply`
 
 ``` r
-plan("multicore")
+plan("multicore", workers=8)
 
 system.time({
   out <- future_lapply(1:2000, function(i) {
@@ -126,10 +128,9 @@ system.time({
 ```
 
     .    user  system elapsed 
-    .  36.205   6.555   9.204
+    .  38.839   6.245   9.901
 
-`lapply`
---------
+## `lapply`
 
 ``` r
 system.time({
@@ -143,12 +144,12 @@ system.time({
 ```
 
     .    user  system elapsed 
-    .  17.262   1.019  18.371
+    .  20.978   1.223  22.471
 
-`mclapply`
-----------
+## `mclapply`
 
 ``` r
+options(mc.cores=8)
 system.time({
   out <- parallel::mclapply(1:2000, function(i) {
     mod %>% 
@@ -160,12 +161,15 @@ system.time({
 ```
 
     .    user  system elapsed 
-    .  19.887   4.320  13.706
+    .  33.321   7.221   9.473
 
-Parallelize within data set
-===========================
+# Parallelize within data set
 
-In this example, let's simulate 3k subjects at each of 8 doses. We'll split the data set on the dose and simulate each dose separately and then bind back together in a single data set. This is probably the quickest way to get it done. But we really need to work to see the speedup from parallelizing.
+In this example, let’s simulate 3k subjects at each of 8 doses. We’ll
+split the data set on the dose and simulate each dose separately and
+then bind back together in a single data set. This is probably the
+quickest way to get it done. But we really need to work to see the
+speedup from parallelizing.
 
 ``` r
 data <- expand.ev(
@@ -193,13 +197,13 @@ data_split <- split(data, data$amt)
 
 system.time({
   out <- future_lapply(data_split, function(chunk) {
-    mod %>% mrgsim_d(chunk, end = 24*27) %>% as_data_frame  
+    mod %>% mrgsim_d(chunk, end = 24*27) %>% as_tibble()
   }) %>% bind_rows()
 })
 ```
 
     .    user  system elapsed 
-    .   6.026   2.435   2.320
+    .   6.260   2.312   2.241
 
 ``` r
 dim(out)
@@ -210,10 +214,10 @@ dim(out)
 ``` r
 system.time({
   out <- lapply(data_split, function(chunk) {
-    mod %>% mrgsim_d(chunk, end = 24*27) %>% as_data_frame  
+    mod %>% mrgsim_d(chunk, end = 24*27) %>% as_tibble()
   }) %>% bind_rows()
 })
 ```
 
     .    user  system elapsed 
-    .   3.326   0.460   3.805
+    .   3.542   0.506   4.068

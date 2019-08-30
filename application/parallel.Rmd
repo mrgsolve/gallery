@@ -34,6 +34,7 @@ mod <- mread("pk1", modlib())
 # The `future.apply` package
 ```{r}
 library(future.apply)
+Sys.setenv(R_FUTURE_FORK_ENABLE=TRUE)
 ```
 
 
@@ -71,7 +72,7 @@ head(out)
 
 On macos or unix systems, you can use:
 ```{r}
-plan("multicore")
+plan("multicore", workers=8)
 ```
 
 ```{r}
@@ -95,7 +96,7 @@ head(out)
 
 ```{r}
 
-plan("multicore")
+plan("multicore", workers=8)
 
 system.time({
   out <- future_lapply(1:2000, function(i) {
@@ -123,6 +124,7 @@ system.time({
 ## `mclapply`
 
 ```{r}
+options(mc.cores=8)
 system.time({
   out <- parallel::mclapply(1:2000, function(i) {
     mod %>% 
@@ -155,7 +157,7 @@ data_split <- split(data, data$amt)
 
 system.time({
   out <- future_lapply(data_split, function(chunk) {
-    mod %>% mrgsim_d(chunk, end = 24*27) %>% as_data_frame  
+    mod %>% mrgsim_d(chunk, end = 24*27) %>% as_tibble()
   }) %>% bind_rows()
 })
 ```
@@ -166,7 +168,7 @@ dim(out)
 ```{r}
 system.time({
   out <- lapply(data_split, function(chunk) {
-    mod %>% mrgsim_d(chunk, end = 24*27) %>% as_data_frame  
+    mod %>% mrgsim_d(chunk, end = 24*27) %>% as_tibble()
   }) %>% bind_rows()
 })
 ```

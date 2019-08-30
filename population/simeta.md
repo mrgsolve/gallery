@@ -1,22 +1,30 @@
 Resimulate random effect variates on demand
 ================
 
-simeta (and simeps)
-===================
+# simeta (and simeps)
 
 ``` r
 library(mrgsolve)
 library(dplyr)
 ```
 
-`simeta` example
-----------------
+## `simeta` example
 
--   In this example, we want to simulate a patient-specific baseline response that is between 80 and 120.
--   In the code, we start a loop that calls `simeta` with no arguments until the baseline is between the specified bounds
--   For this example, we only calculate `BASE` when `NEWIND <=1` ... or whenever we are working on the first record of an individual. This ensures that we don't re-simulate `BASE` at every simulation record.
--   We have also implemented a counter (`i`) that ensures we only try to resimulate 100 times. If a value for `BASE` cannot be generated in 100 tries, we give up.
--   You probably won't need to implement `FLAG` for your problem. I am only using `FLAG` here so we can selectively call the `simeta` code to demonstrate how it is working.
+  - In this example, we want to simulate a patient-specific baseline
+    response that is between 80 and 120.
+  - In the code, we start a loop that calls `simeta` with no arguments
+    until the baseline is between the specified bounds
+  - For this example, we only calculate `BASE` when `NEWIND <=1` … or
+    whenever we are working on the first record of an individual. This
+    ensures that we don’t re-simulate `BASE` at every simulation record.
+  - We have also implemented a counter (`i`) that ensures we only try to
+    resimulate 100 times. If a value for `BASE` cannot be generated in
+    100 tries, we give up.  
+  - You probably won’t need to implement `FLAG` for your problem. I am
+    only using `FLAG` here so we can selectively call the `simeta` code
+    to demonstrate how it is working.
+
+<!-- end list -->
 
 ``` r
 code <- '
@@ -35,7 +43,7 @@ if(NEWIND <=1) {
   if(FLAG > 0) {
     while((BASE < 80) || (BASE > 120)) {
       if(++i > 100) {
-        report("There was a problem simulating BASE");
+        mrgsolve::report("There was a problem simulating BASE");
       }
       simeta();
       BASE = TVBASE*exp(EBASE);
@@ -67,28 +75,29 @@ system.time({
 ```
 
     .    user  system elapsed 
-    .   0.010   0.000   0.012
+    .   0.021   0.001   0.022
 
 ``` r
 print(sum)
 ```
 
     .        ID              time      RESPONSE           EBASE         
-    .  Min.   :  1.00   Min.   :0   Min.   :  9.047   Min.   :-2.40270  
-    .  1st Qu.: 25.75   1st Qu.:0   1st Qu.: 40.958   1st Qu.:-0.89264  
-    .  Median : 50.50   Median :0   Median : 97.555   Median :-0.02637  
-    .  Mean   : 50.50   Mean   :0   Mean   :147.628   Mean   :-0.07915  
-    .  3rd Qu.: 75.25   3rd Qu.:0   3rd Qu.:163.394   3rd Qu.: 0.49093  
-    .  Max.   :100.00   Max.   :0   Max.   :763.956   Max.   : 2.03334  
+    .  Min.   :  1.00   Min.   :0   Min.   :  3.681   Min.   :-3.30205  
+    .  1st Qu.: 25.75   1st Qu.:0   1st Qu.: 47.744   1st Qu.:-0.73971  
+    .  Median : 50.50   Median :0   Median :123.320   Median : 0.20961  
+    .  Mean   : 50.50   Mean   :0   Mean   :155.289   Mean   :-0.02367  
+    .  3rd Qu.: 75.25   3rd Qu.:0   3rd Qu.:179.980   3rd Qu.: 0.58768  
+    .  Max.   :100.00   Max.   :0   Max.   :846.886   Max.   : 2.13640  
     .       BASE        
-    .  Min.   :  9.047  
-    .  1st Qu.: 40.958  
-    .  Median : 97.555  
-    .  Mean   :147.628  
-    .  3rd Qu.:163.394  
-    .  Max.   :763.956
+    .  Min.   :  3.681  
+    .  1st Qu.: 47.744  
+    .  Median :123.320  
+    .  Mean   :155.289  
+    .  3rd Qu.:179.980  
+    .  Max.   :846.886
 
-When we simulate with `FLAG=0`, the `simeta` code **isn't** called and we `BASE` values all over the place.
+When we simulate with `FLAG=0`, the `simeta` code **isn’t** called and
+we `BASE` values all over the place.
 
 ### Simulate with `simeta`
 
@@ -100,34 +109,38 @@ system.time({
 ```
 
     .    user  system elapsed 
-    .   0.117   0.004   0.123
+    .   0.004   0.000   0.004
 
 ``` r
 print(sum)
 ```
 
     .        ID              time      RESPONSE          EBASE         
-    .  Min.   :  1.00   Min.   :0   Min.   : 80.10   Min.   :-0.22191  
-    .  1st Qu.: 25.75   1st Qu.:0   1st Qu.: 86.11   1st Qu.:-0.14955  
-    .  Median : 50.50   Median :0   Median : 96.84   Median :-0.03212  
-    .  Mean   : 50.50   Mean   :0   Mean   : 97.96   Mean   :-0.02843  
-    .  3rd Qu.: 75.25   3rd Qu.:0   3rd Qu.:108.15   3rd Qu.: 0.07834  
-    .  Max.   :100.00   Max.   :0   Max.   :119.80   Max.   : 0.18062  
+    .  Min.   :  1.00   Min.   :0   Min.   : 80.45   Min.   :-0.21758  
+    .  1st Qu.: 25.75   1st Qu.:0   1st Qu.: 86.76   1st Qu.:-0.14205  
+    .  Median : 50.50   Median :0   Median : 98.83   Median :-0.01179  
+    .  Mean   : 50.50   Mean   :0   Mean   : 98.46   Mean   :-0.02222  
+    .  3rd Qu.: 75.25   3rd Qu.:0   3rd Qu.:108.18   3rd Qu.: 0.07862  
+    .  Max.   :100.00   Max.   :0   Max.   :119.91   Max.   : 0.18160  
     .       BASE       
-    .  Min.   : 80.10  
-    .  1st Qu.: 86.11  
-    .  Median : 96.84  
-    .  Mean   : 97.96  
-    .  3rd Qu.:108.15  
-    .  Max.   :119.80
+    .  Min.   : 80.45  
+    .  1st Qu.: 86.76  
+    .  Median : 98.83  
+    .  Mean   : 98.46  
+    .  3rd Qu.:108.18  
+    .  Max.   :119.91
 
-When we simulate with `FLAG=1`, the `simeta` code **is** called and we `BASE` values within the specified bounds.
+When we simulate with `FLAG=1`, the `simeta` code **is** called and we
+`BASE` values within the specified bounds.
 
-`simeps` example
-----------------
+## `simeps` example
 
--   In this example, we want to re-simulate the residual error variate to make sure we have a concentration that is positive.
--   We set up a loop that looks like the `simeta` example, but we work in `$TABLE` this time because we are calculating `CP`.
+  - In this example, we want to re-simulate the residual error variate
+    to make sure we have a concentration that is positive.
+  - We set up a loop that looks like the `simeta` example, but we work
+    in `$TABLE` this time because we are calculating `CP`.
+
+<!-- end list -->
 
 ``` r
 code <- '
@@ -143,7 +156,7 @@ capture CP = CENT/V + EPS(1);
 int i = 0;
 while(CP < 0 && FLAG > 0) {
   if(++i > 100) {
-    report("Problem simulating positive CP");
+    mrgsolve::report("Problem simulating positive CP");
   }
   simeps();
   CP = CENT/V + EPS(1);
@@ -166,21 +179,22 @@ system.time({
 ```
 
     .    user  system elapsed 
-    .   0.010   0.001   0.012
+    .   0.011   0.000   0.011
 
 ``` r
 print(sum)
 ```
 
     .        ID         time            CENT              CP         
-    .  Min.   :1   Min.   : 0.00   Min.   :  0.00   Min.   :-13.215  
-    .  1st Qu.:1   1st Qu.:11.25   1st Qu.: 15.93   1st Qu.: -2.857  
-    .  Median :1   Median :23.50   Median : 29.38   Median :  2.738  
-    .  Mean   :1   Mean   :23.52   Mean   : 37.47   Mean   :  2.478  
-    .  3rd Qu.:1   3rd Qu.:35.75   3rd Qu.: 54.21   3rd Qu.:  7.746  
-    .  Max.   :1   Max.   :48.00   Max.   :100.00   Max.   : 16.567
+    .  Min.   :1   Min.   : 0.00   Min.   :  0.00   Min.   :-13.935  
+    .  1st Qu.:1   1st Qu.:11.25   1st Qu.: 15.93   1st Qu.: -3.445  
+    .  Median :1   Median :23.50   Median : 29.38   Median :  1.410  
+    .  Mean   :1   Mean   :23.52   Mean   : 37.47   Mean   :  1.846  
+    .  3rd Qu.:1   3rd Qu.:35.75   3rd Qu.: 54.21   3rd Qu.:  5.705  
+    .  Max.   :1   Max.   :48.00   Max.   :100.00   Max.   : 21.803
 
-**Negative** concentrations are simulated when we **don't** call the `simeps` loop.
+**Negative** concentrations are simulated when we **don’t** call the
+`simeps` loop.
 
 ### Simulate with `simeps`
 
@@ -192,18 +206,18 @@ system.time({
 ```
 
     .    user  system elapsed 
-    .   0.050   0.003   0.055
+    .   0.032   0.000   0.033
 
 ``` r
 print(sum)
 ```
 
-    .        ID         time            CENT              CP          
-    .  Min.   :1   Min.   : 0.00   Min.   :  0.00   Min.   : 0.08326  
-    .  1st Qu.:1   1st Qu.:11.25   1st Qu.: 15.93   1st Qu.: 3.56431  
-    .  Median :1   Median :23.50   Median : 29.38   Median : 5.72780  
-    .  Mean   :1   Mean   :23.52   Mean   : 37.47   Mean   : 6.61531  
-    .  3rd Qu.:1   3rd Qu.:35.75   3rd Qu.: 54.21   3rd Qu.: 8.65682  
-    .  Max.   :1   Max.   :48.00   Max.   :100.00   Max.   :22.17507
+    .        ID         time            CENT              CP        
+    .  Min.   :1   Min.   : 0.00   Min.   :  0.00   Min.   : 0.375  
+    .  1st Qu.:1   1st Qu.:11.25   1st Qu.: 15.93   1st Qu.: 3.226  
+    .  Median :1   Median :23.50   Median : 29.38   Median : 5.950  
+    .  Mean   :1   Mean   :23.52   Mean   : 37.47   Mean   : 6.430  
+    .  3rd Qu.:1   3rd Qu.:35.75   3rd Qu.: 54.21   3rd Qu.: 8.263  
+    .  Max.   :1   Max.   :48.00   Max.   :100.00   Max.   :21.632
 
-Better ... all concentrations are positive.
+Better … all concentrations are positive.

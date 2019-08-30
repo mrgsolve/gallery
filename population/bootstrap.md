@@ -1,25 +1,32 @@
 Simulate from bootstrap estimates
 ================
 
--   [Scope and source code](#scope-and-source-code)
--   [Load an example model](#load-an-example-model)
--   [Generate an example data template](#generate-an-example-data-template)
-    -   [Test simulation](#test-simulation)
--   [Example bootstrap output](#example-bootstrap-output)
--   [Helper functions for matrices](#helper-functions-for-matrices)
-    -   [Create a list of `$OMEGA` and `$SIGMA` matrices](#create-a-list-of-omega-and-sigma-matrices)
--   [Simulate](#simulate)
--   [Simulate with only uncertainty in the `THETA`s](#simulate-with-only-uncertainty-in-the-thetas)
--   [Session Info](#session-info)
+  - [Scope and source code](#scope-and-source-code)
+  - [Load an example model](#load-an-example-model)
+  - [Generate an example data
+    template](#generate-an-example-data-template)
+      - [Test simulation](#test-simulation)
+  - [Example bootstrap output](#example-bootstrap-output)
+  - [Helper functions for matrices](#helper-functions-for-matrices)
+      - [Create a list of `$OMEGA` and `$SIGMA`
+        matrices](#create-a-list-of-omega-and-sigma-matrices)
+  - [Simulate](#simulate)
+  - [Simulate with only uncertainty in the
+    `THETA`s](#simulate-with-only-uncertainty-in-the-thetas)
+  - [Session Info](#session-info)
 
-Scope and source code
-=====================
+# Scope and source code
 
-This document demonstrates how to use an mrgsolve model and bootstrap parameter estiamtes to create replicate simulations that incorporate uncertainty in the fixed effect (e.g. `THETA`) and random effect (e.g. `OMEGA` and `SIGMA`) parameters.
+This document demonstrates how to use an mrgsolve model and bootstrap
+parameter estiamtes to create replicate simulations that incorporate
+uncertainty in the fixed effect (e.g. `THETA`) and random effect (e.g.
+`OMEGA` and `SIGMA`) parameters.
 
 **Source code**
 
-The example code for this document can be reached [here](bootstrap.Rmd) and the example model [here](bootstrap.cpp). The bootstrap data set is bundled with the mrgsolve package.
+The example code for this document can be reached [here](bootstrap.Rmd)
+and the example model [here](bootstrap.cpp). The bootstrap data set is
+bundled with the mrgsolve package.
 
 **Required packages**
 
@@ -29,8 +36,7 @@ library(dplyr)
 library(ggplot2)
 ```
 
-Load an example model
-=====================
+# Load an example model
 
 You can see the model source [here](bootstrap.cpp)
 
@@ -72,8 +78,7 @@ smat(mod)
     .     [,1]
     . 1:     0
 
-Generate an example data template
-=================================
+# Generate an example data template
 
 ``` r
 data <- ev_rep(ev(amt = 100, ii = 24, addl = 2), ID = 1:5)
@@ -92,8 +97,7 @@ data
     . 4    0   1 100    1 24    2  4
     . 5    0   1 100    1 24    2  5
 
-Test simulation
----------------
+## Test simulation
 
 The basic simulation we will be doing is
 
@@ -106,14 +110,16 @@ mod %>%
   plot()
 ```
 
-![](img/bootstrap-unnamed-chunk-9-1.png)
+![](img/bootstrap-unnamed-chunk-9-1.png)<!-- -->
 
-Just three doses, simulating out to 96 hours. From here, we will do this test simulation for several replicates, with each replicate drawing a different set of bootstrap parameters.
+Just three doses, simulating out to 96 hours. From here, we will do this
+test simulation for several replicates, with each replicate drawing a
+different set of bootstrap parameters.
 
-Example bootstrap output
-========================
+# Example bootstrap output
 
-The example assumes that the different estimates are in columns and the different boostrap runs are each in a separate row of a data frame.
+The example assumes that the different estimates are in columns and the
+different boostrap runs are each in a separate row of a data frame.
 
 ``` r
 data(exBoot)
@@ -135,17 +141,25 @@ head(exBoot)
     . 5  0.2500 0.001606       0  0.8996
     . 6  0.3412 0.002134       0  0.9744
 
-**NOTE** mrgsolve has some functions to help you deal with output that is in this `NONMEM` type format; for `OMEGA`, it is expecting `OMEGA11`, then `OMEGA21` then `OMEGA22` then `OMEGA31` etc. Below, find some functions to go into this data frame to make R matrices that you can pass to the model.
+**NOTE** mrgsolve has some functions to help you deal with output that
+is in this `NONMEM` type format; for `OMEGA`, it is expecting `OMEGA11`,
+then `OMEGA21` then `OMEGA22` then `OMEGA31` etc. Below, find some
+functions to go into this data frame to make R matrices that you can
+pass to the model.
 
-I know that PsN can return these data in a different order. I don't know enough about how it is structured to write something that will always handle properly and in a convenient way. So there if you're using PsN, there is a chance you will have to code some of this by hand. If that is a case, I'm looking for a PsN-using collaborator who could help us understand / predict the output so we could automate.
+I know that PsN can return these data in a different order. I don’t know
+enough about how it is structured to write something that will always
+handle properly and in a convenient way. So there if you’re using PsN,
+there is a chance you will have to code some of this by hand. If that is
+a case, I’m looking for a PsN-using collaborator who could help us
+understand / predict the output so we could automate.
 
-Helper functions for matrices
-=============================
+# Helper functions for matrices
 
-Create a list of `$OMEGA` and `$SIGMA` matrices
------------------------------------------------
+## Create a list of `$OMEGA` and `$SIGMA` matrices
 
-Create a list of `OMEGA` matrices; the function looks for column names in `exBoot` that contains `OMEGA`
+Create a list of `OMEGA` matrices; the function looks for column names
+in `exBoot` that contains `OMEGA`
 
 ``` r
 omegas <- as_bmat(exBoot, "OMEGA")
@@ -178,7 +192,8 @@ as_bmat(exBoot[1,], "OMEGA")
     . [2,] 0.04613  0.28740 -0.02164
     . [3,] 0.13820 -0.02164  0.39330
 
-Do this for `SIGMA` too; I only had one `EPS` in the simulation model, so I'm going to look for `SIGMA11` only to get a 1x1 matrix
+Do this for `SIGMA` too; I only had one `EPS` in the simulation model,
+so I’m going to look for `SIGMA11` only to get a 1x1 matrix
 
 ``` r
 sigmas <- as_bmat(exBoot, "SIGMA11")
@@ -189,14 +204,16 @@ sigmas[[10]]
     .          [,1]
     . [1,] 0.001869
 
-Simulate
-========
+# Simulate
 
-1.  The `param` call scrapes the `THETA`s from `exBoot`; this works because `THETA1`, `THETA2`, and `THETA3` are listed in `$PARAM`
-2.  Use `omat` to update the `$OMEGA` matrix; this works because `$OMEGA` is a 3x3 matrix
+1.  The `param` call scrapes the `THETA`s from `exBoot`; this works
+    because `THETA1`, `THETA2`, and `THETA3` are listed in `$PARAM`
+2.  Use `omat` to update the `$OMEGA` matrix; this works because
+    `$OMEGA` is a 3x3 matrix
 3.  Use `smat` to update the `$SIGMA` matrix
 
-In the simulation loop, `i` indicates the replicate number, or the `ith` set of bootstrap parameter estimates.
+In the simulation loop, `i` indicates the replicate number, or the `ith`
+set of bootstrap parameter estimates.
 
 ``` r
 set.seed(222)
@@ -214,18 +231,19 @@ out <- lapply(1:10, function(i) {
 }) %>% bind_rows
 ```
 
-In the output, we have 10 replicates, each with five individuals
+In the output, we have 10 replicates, each with five
+individuals
 
 ``` r
 ggplot(out, aes(time,DV,group=ID)) + geom_line() + theme_bw() + facet_wrap(~rep)
 ```
 
-![](img/bootstrap-unnamed-chunk-17-1.png)
+![](img/bootstrap-unnamed-chunk-17-1.png)<!-- -->
 
-Simulate with only uncertainty in the `THETA`s
-==============================================
+# Simulate with only uncertainty in the `THETA`s
 
-Here, we just drop out the update to `OMEGA` and `SIGMA` and zero out the random effects.
+Here, we just drop out the update to `OMEGA` and `SIGMA` and zero out
+the random effects.
 
 ``` r
 set.seed(222)
@@ -244,16 +262,17 @@ out <- lapply(1:10, function(i) {
 }) %>% bind_rows
 ```
 
-Now, we have one "individual" simulated from 10 different bootstrap parameter sets
+Now, we have one “individual” simulated from 10 different bootstrap
+parameter
+    sets
 
 ``` r
 ggplot(out, aes(time,DV,group=rep)) + geom_line() + theme_bw() 
 ```
 
-![](img/bootstrap-unnamed-chunk-19-1.png)
+![](img/bootstrap-unnamed-chunk-19-1.png)<!-- -->
 
-Session Info
-============
+# Session Info
 
 ``` r
 devtools::session_info()
@@ -261,7 +280,7 @@ devtools::session_info()
 
     . ─ Session info ──────────────────────────────────────────────────────────
     .  setting  value                       
-    .  version  R version 3.5.0 (2018-04-23)
+    .  version  R version 3.6.1 (2019-07-05)
     .  os       macOS Sierra 10.12.6        
     .  system   x86_64, darwin15.6.0        
     .  ui       X11                         
@@ -269,64 +288,60 @@ devtools::session_info()
     .  collate  en_US.UTF-8                 
     .  ctype    en_US.UTF-8                 
     .  tz       America/Chicago             
-    .  date     2018-12-18                  
+    .  date     2019-08-29                  
     . 
     . ─ Packages ──────────────────────────────────────────────────────────────
     .  package       * version     date       lib source        
-    .  assertthat      0.2.0       2017-04-11 [1] CRAN (R 3.4.0)
-    .  backports       1.1.2       2017-12-13 [1] CRAN (R 3.5.0)
-    .  bindr           0.1.1       2018-03-13 [1] CRAN (R 3.4.4)
-    .  bindrcpp      * 0.2.2       2018-03-29 [1] CRAN (R 3.5.0)
-    .  callr           3.1.0       2018-12-10 [1] CRAN (R 3.5.0)
-    .  cli             1.0.1       2018-09-25 [1] CRAN (R 3.5.0)
-    .  colorspace      1.3-2       2016-12-14 [1] CRAN (R 3.5.0)
-    .  crayon          1.3.4       2017-09-16 [1] CRAN (R 3.4.1)
-    .  desc            1.2.0       2018-05-01 [1] CRAN (R 3.5.0)
-    .  devtools        2.0.1       2018-10-26 [1] CRAN (R 3.5.0)
-    .  digest          0.6.18      2018-10-10 [1] CRAN (R 3.5.0)
-    .  dplyr         * 0.7.8       2018-11-10 [1] CRAN (R 3.5.0)
-    .  evaluate        0.12        2018-10-09 [1] CRAN (R 3.5.0)
-    .  fs              1.2.6       2018-08-23 [1] CRAN (R 3.5.0)
-    .  ggplot2       * 3.1.0       2018-10-25 [1] CRAN (R 3.5.0)
-    .  glue            1.3.0       2018-07-17 [1] CRAN (R 3.5.0)
-    .  gtable          0.2.0       2016-02-26 [1] CRAN (R 3.4.0)
-    .  htmltools       0.3.6       2017-04-28 [1] CRAN (R 3.5.0)
-    .  knitr           1.21        2018-12-10 [1] CRAN (R 3.5.0)
-    .  labeling        0.3         2014-08-23 [1] CRAN (R 3.4.0)
-    .  lattice         0.20-38     2018-11-04 [1] CRAN (R 3.5.0)
-    .  lazyeval        0.2.1       2017-10-29 [1] CRAN (R 3.5.0)
-    .  magrittr        1.5         2014-11-22 [1] CRAN (R 3.4.0)
-    .  memoise         1.1.0       2017-04-21 [1] CRAN (R 3.4.0)
-    .  mrgsolve      * 0.8.12.9000 2018-12-16 [1] local         
-    .  munsell         0.5.0       2018-06-12 [1] CRAN (R 3.5.0)
-    .  pillar          1.3.0       2018-07-14 [1] CRAN (R 3.5.0)
-    .  pkgbuild        1.0.2       2018-10-16 [1] CRAN (R 3.5.0)
-    .  pkgconfig       2.0.2       2018-08-16 [1] CRAN (R 3.5.0)
-    .  pkgload         1.0.2       2018-10-29 [1] CRAN (R 3.5.0)
-    .  plyr            1.8.4       2016-06-08 [1] CRAN (R 3.5.0)
-    .  prettyunits     1.0.2       2015-07-13 [1] CRAN (R 3.4.0)
-    .  processx        3.2.1       2018-12-05 [1] CRAN (R 3.5.0)
-    .  ps              1.2.1       2018-11-06 [1] CRAN (R 3.5.0)
-    .  purrr           0.2.5       2018-05-29 [1] CRAN (R 3.5.0)
-    .  R6              2.3.0       2018-10-04 [1] CRAN (R 3.5.0)
-    .  Rcpp            1.0.0       2018-11-07 [1] CRAN (R 3.5.0)
-    .  RcppArmadillo   0.9.200.5.0 2018-11-28 [1] CRAN (R 3.5.0)
-    .  remotes         2.0.2       2018-10-30 [1] CRAN (R 3.5.0)
-    .  rlang           0.3.0.1     2018-10-25 [1] CRAN (R 3.5.0)
-    .  rmarkdown       1.11        2018-12-08 [1] CRAN (R 3.5.0)
-    .  rprojroot       1.3-2       2018-01-03 [1] CRAN (R 3.4.2)
-    .  scales          1.0.0       2018-08-09 [1] CRAN (R 3.5.0)
-    .  sessioninfo     1.1.1       2018-11-05 [1] CRAN (R 3.5.0)
-    .  stringi         1.2.4       2018-07-20 [1] CRAN (R 3.5.0)
-    .  stringr         1.3.1       2018-05-10 [1] CRAN (R 3.5.0)
-    .  sys             2.1         2018-11-13 [1] CRAN (R 3.5.0)
-    .  testthat        2.0.1       2018-10-13 [1] CRAN (R 3.5.0)
-    .  tibble          1.4.2       2018-01-22 [1] CRAN (R 3.5.0)
-    .  tidyselect      0.2.5       2018-10-11 [1] CRAN (R 3.5.0)
-    .  usethis         1.4.0       2018-08-14 [1] CRAN (R 3.5.0)
-    .  withr           2.1.2       2018-03-15 [1] CRAN (R 3.5.0)
-    .  xfun            0.4         2018-10-23 [1] CRAN (R 3.5.0)
-    .  yaml            2.2.0       2018-07-25 [1] CRAN (R 3.5.0)
+    .  assertthat      0.2.1       2019-03-21 [1] CRAN (R 3.6.0)
+    .  backports       1.1.4       2019-04-10 [1] CRAN (R 3.6.0)
+    .  callr           3.3.1       2019-07-18 [1] CRAN (R 3.6.0)
+    .  cli             1.1.0       2019-03-19 [1] CRAN (R 3.6.0)
+    .  colorspace      1.4-1       2019-03-18 [1] CRAN (R 3.6.0)
+    .  crayon          1.3.4       2017-09-16 [1] CRAN (R 3.6.0)
+    .  desc            1.2.0       2018-05-01 [1] CRAN (R 3.6.0)
+    .  devtools        2.1.0       2019-07-06 [1] CRAN (R 3.6.0)
+    .  digest          0.6.20      2019-07-04 [1] CRAN (R 3.6.0)
+    .  dplyr         * 0.8.3       2019-07-04 [1] CRAN (R 3.6.0)
+    .  evaluate        0.14        2019-05-28 [1] CRAN (R 3.6.0)
+    .  fs              1.3.1       2019-05-06 [1] CRAN (R 3.6.0)
+    .  ggplot2       * 3.2.1       2019-08-10 [1] CRAN (R 3.6.0)
+    .  glue            1.3.1       2019-03-12 [1] CRAN (R 3.6.0)
+    .  gtable          0.3.0       2019-03-25 [1] CRAN (R 3.6.0)
+    .  htmltools       0.3.6       2017-04-28 [1] CRAN (R 3.6.0)
+    .  knitr           1.24        2019-08-08 [1] CRAN (R 3.6.0)
+    .  labeling        0.3         2014-08-23 [1] CRAN (R 3.6.0)
+    .  lattice         0.20-38     2018-11-04 [1] CRAN (R 3.6.0)
+    .  lazyeval        0.2.2       2019-03-15 [1] CRAN (R 3.6.0)
+    .  magrittr        1.5         2014-11-22 [1] CRAN (R 3.6.0)
+    .  memoise         1.1.0       2017-04-21 [1] CRAN (R 3.6.0)
+    .  mrgsolve      * 0.9.2       2019-07-13 [1] CRAN (R 3.6.0)
+    .  munsell         0.5.0       2018-06-12 [1] CRAN (R 3.6.0)
+    .  pillar          1.4.2       2019-06-29 [1] CRAN (R 3.6.0)
+    .  pkgbuild        1.0.5       2019-08-26 [1] CRAN (R 3.6.0)
+    .  pkgconfig       2.0.2       2018-08-16 [1] CRAN (R 3.6.0)
+    .  pkgload         1.0.2       2018-10-29 [1] CRAN (R 3.6.0)
+    .  prettyunits     1.0.2       2015-07-13 [1] CRAN (R 3.6.0)
+    .  processx        3.4.1       2019-07-18 [1] CRAN (R 3.6.0)
+    .  ps              1.3.0       2018-12-21 [1] CRAN (R 3.6.0)
+    .  purrr           0.3.2       2019-03-15 [1] CRAN (R 3.6.0)
+    .  R6              2.4.0       2019-02-14 [1] CRAN (R 3.6.0)
+    .  Rcpp            1.0.2       2019-07-25 [1] CRAN (R 3.6.0)
+    .  RcppArmadillo   0.9.600.4.0 2019-07-15 [1] CRAN (R 3.6.0)
+    .  remotes         2.1.0       2019-06-24 [1] CRAN (R 3.6.0)
+    .  rlang           0.4.0       2019-06-25 [1] CRAN (R 3.6.0)
+    .  rmarkdown       1.15        2019-08-21 [1] CRAN (R 3.6.0)
+    .  rprojroot       1.3-2       2018-01-03 [1] CRAN (R 3.6.0)
+    .  scales          1.0.0       2018-08-09 [1] CRAN (R 3.6.0)
+    .  sessioninfo     1.1.1       2018-11-05 [1] CRAN (R 3.6.0)
+    .  stringi         1.4.3       2019-03-12 [1] CRAN (R 3.6.0)
+    .  stringr         1.4.0       2019-02-10 [1] CRAN (R 3.6.0)
+    .  testthat        2.2.1       2019-07-25 [1] CRAN (R 3.6.0)
+    .  tibble          2.1.3       2019-06-06 [1] CRAN (R 3.6.0)
+    .  tidyselect      0.2.5       2018-10-11 [1] CRAN (R 3.6.0)
+    .  usethis         1.5.1       2019-07-04 [1] CRAN (R 3.6.0)
+    .  withr           2.1.2       2018-03-15 [1] CRAN (R 3.6.0)
+    .  xfun            0.9         2019-08-21 [1] CRAN (R 3.6.0)
+    .  yaml            2.2.0       2018-07-25 [1] CRAN (R 3.6.0)
     . 
     . [1] /Users/kyleb/Rlibs
-    . [2] /Library/Frameworks/R.framework/Versions/3.5/Resources/library
+    . [2] /Library/Frameworks/R.framework/Versions/3.6/Resources/library

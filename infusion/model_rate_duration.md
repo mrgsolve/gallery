@@ -5,14 +5,15 @@ Model infusion rate or duration
 library(mrgsolve)
 ```
 
-Model the rate
---------------
+## Model the rate
 
--   We use `R_CENT` to model the infusion rate into the `CENT`ral
+  - We use `R_CENT` to model the infusion rate into the `CENT`ral
     compartment
--   The nonmem equivalent for this example would be `R1`
--   Like nonmem, we use `rate = -1` to indicate that the rate is
+  - The nonmem equivalent for this example would be `R1`
+  - Like nonmem, we use `rate = -1` to indicate that the rate is
     determined in the model
+
+<!-- end list -->
 
 ``` r
 code <- '
@@ -33,16 +34,17 @@ mod <- mcode("model_rate", code) %>% update(end = 120, delta = 0.1)
 mod %>% ev(amt = 100, rate = -1) %>% mrgsim %>% plot
 ```
 
-![](img/model_rate_duration-unnamed-chunk-5-1.png)
+![](img/model_rate_duration-unnamed-chunk-5-1.png)<!-- -->
 
-Model the duration
-------------------
+## Model the duration
 
--   We use `D_CENT` to model the infusion duration into the `CENT`ral
+  - We use `D_CENT` to model the infusion duration into the `CENT`ral
     compartment
--   The nonmem equivalent for this example would be `D1`
--   Like nonmem, we use `rate = -2` to indicate that the duration is
+  - The nonmem equivalent for this example would be `D1`
+  - Like nonmem, we use `rate = -2` to indicate that the duration is
     determined in the model
+
+<!-- end list -->
 
 ``` r
 code <- '
@@ -64,4 +66,4 @@ mod <- mcode("model_duration", code) %>% update(end = 120, delta = 0.1)
 mod %>% ev(amt = 100, rate = -2) %>% mrgsim %>% plot
 ```
 
-![](img/model_rate_duration-unnamed-chunk-8-1.png)
+![](img/model_rate_duration-unnamed-chunk-8-1.png)<!-- -->

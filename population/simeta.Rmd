@@ -53,7 +53,7 @@ if(NEWIND <=1) {
   if(FLAG > 0) {
     while((BASE < 80) || (BASE > 120)) {
       if(++i > 100) {
-        report("There was a problem simulating BASE");
+        mrgsolve::report("There was a problem simulating BASE");
       }
       simeta();
       BASE = TVBASE*exp(EBASE);
@@ -131,7 +131,7 @@ capture CP = CENT/V + EPS(1);
 int i = 0;
 while(CP < 0 && FLAG > 0) {
   if(++i > 100) {
-    report("Problem simulating positive CP");
+    mrgsolve::report("Problem simulating positive CP");
   }
   simeps();
   CP = CENT/V + EPS(1);
