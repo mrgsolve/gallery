@@ -83,9 +83,9 @@ gen_samples <- function(n, l, which = names(l),
   Y <- X
   
   for(i in seq(len)){
-    r <- runif(n, df[1,i], df[2,i])
+    r <- exp(runif(n, log(df[1,i]), log(df[2,i])))
     X[,i] <- r
-    r <- runif(n, df[1,i], df[2,i])
+    r <- exp(runif(n, log(df[1,i]), log(df[2,i])))
     Y[,i] <- r
   }
   
@@ -164,7 +164,7 @@ bound <- tribble(
 mksamp <- function(bounds, n) {
   x <- split(bounds,seq(nrow(bounds)))
   out <- lapply(x, function(xx) {
-    runif(n, xx$lower[1], xx$upper[1])  
+    exp(runif(n, log(xx$lower[1]), log(xx$upper[1])))
   })
   names(out) <- bounds$name
   return(as_tibble(out))

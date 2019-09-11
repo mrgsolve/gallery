@@ -1,0 +1,84 @@
+---
+title: "Simple adaptive dosing"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, comment='.', message=FALSE, warning=FALSE)
+```
+
+
+# Introduction
+
+This is a very simple dose adjustment example, presented as a first example 
+to get started.  
+
+The scenario is:
+
+1. Dosing regimen of 1200 mg BID over 10 days
+1. Sensitivity analysis for volume of distribution (10 to 40 L)
+1. If the concentration ever reaches some critical concentration (say 100 mg/L), 
+   we cut the dose by some factor (say in half)
+1. Once the dose is adjusted it remains adjusted
+1. Evaluate time when dose adjustment takes place
+
+# The model
+
+```{r}
+library(mrgsolve)
+library(dplyr)
+
+mod <- mread("adaptive_simple", end = 240)
+```
+
+
+```{c, eval=FALSE, code = mod@code}
+
+```
+
+## To note
+
+1. We set `condition_met` to `false` in preamble and then renew that in 
+   `[ main ]` when a new individual is encountered.
+1. The bioavailability fraction is adjusted by some amount if the critical 
+   condition is met.
+1. We always make the adjustment in `[ table ]`, that is, after the system has
+   advanced so that doses are adjusted starting the __next__ time the system 
+   advances
+
+# Simulate
+
+```{r}
+data <- expand.ev(amt = 1200, ii = 12, addl = 19, V = c(10, 20, 30, 40))
+
+out <- mrgsim(mod, data, carry_out = "V")
+
+plot(out, CP ~ time | factor(V), scales="same", layout=c(4,1))
+
+```
+
+
+```{r}
+plot(out, F_DEPOT ~ time, scales = "same")
+```
+
+
+# Important
+
+This very simple model cuts the dose in half when a critical concentration is 
+seen.  Whether or not the critical concentration is seen depends on the sampling
+scheme (when observations are made).  For most applications, I have found it 
+necessary to explicitly state __when__ the critical dose adjustment observation 
+is made (e.g. at the trough or at week 14 or whatever).  This most likely 
+requires some special handling in the data set, usually including records
+in the data set with a "custom" `evid` (like 33) that is your signal for 
+checking the state of the model and adjusting the dose. mrgsolve won't do 
+anything with `evid` 33, but you can
+
+For example:
+
+```{c, eval=FALSE}
+[ table ]
+condition_met = ((EVID==33) && (CP > condition)) || condition_met;
+```
+

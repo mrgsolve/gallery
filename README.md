@@ -15,3 +15,5 @@
   - [Sobol sensitivity analysis](application/sobol.md)
   - [Parallel simulation](application/parallel.md)
   - [Estimate parameters for two endpoints](application/two_endpoints.md)
+- [Adaptive dosing examples](adaptive/README.md)
+  - [Simple adaptive dosing](adaptive/adaptive_simple.md)
