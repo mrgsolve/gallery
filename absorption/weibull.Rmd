@@ -1,0 +1,61 @@
+---
+title: "Weibull absorption"
+output: github_document
+---
+
+```{r,echo = FALSE, message = FALSE}
+knitr::opts_chunk$set(comment='.', 
+                      message = FALSE, warning = FALSE)
+```
+
+```{r}
+library(mrgsolve)
+library(tidyverse)
+```
+
+## Weibull-type absorption
+
+```{r}
+code <- '
+$PARAM CL = 5, VC = 50, KA = 0.4, GUTBIOAV = 1, GUTLAGT=0, GAMA=4
+BIOAV = 1, LAGT = 0
+
+$CMT GUT CENT
+
+$MAIN
+// Weibull parameters
+double GAMA1 = GAMA;
+
+// Weibull function
+double WB = 1 - exp(pow((-KA*TIME),GAMA1));
+
+F_GUT = GUTBIOAV;
+ALAG_GUT = GUTLAGT;
+
+F_CENT = BIOAV;
+ALAG_CENT = LAGT;
+
+$ODE
+dxdt_GUT = -WB*GUT;
+dxdt_CENT = WB*GUT - (CL/VC)*CENT;
+
+$TABLE
+double CP = CENT/VC;
+
+$CAPTURE CP
+'
+
+mod <- mcode_cache("weibull", code)
+```
+
+```{r}
+mod <- update(mod, end=72)
+```
+
+### First order events
+
+```{r}
+ev3 <- ev(ID=1,amt = 10, cmt=1)
+out<- mod %>% Req(GUT, CENT, CP) %>% mrgsim(ev3)
+plot(out)
+```
