@@ -8,19 +8,21 @@ library(mrgsolve)
 
 ## PK model
 
-  - One-compartment, with absorption / depot compartment (`GUT`)
-  - We want to administer a single dose, administering a certain
-    fraction by a zero-order infusion and the remaining fraction by
-    first order absorption
-  - To split to dose, we use the bioavailability paramete for `GUT` and
-    `CENT`
+  - One-compartment (`CENT`), with absorption / depot compartment
+    (`GUT`)
+  - We want to administer a single dose, with a certain fraction as a a
+    zero-order infusion and the remaining fraction by first order
+    absorption
+  - To split to dose, we use the bioavailability parameter for `GUT` and
+    `CENT` (`F_GUT` and `F_CENT`, respectively) and we specify the
+    duration of the infusion with `D_CENT`.
 
 <!-- end list -->
 
 ``` r
 code <- '
 $PARAM CL = 1, V = 20, KA = 1.1
-frac_infusion = 0.37, dur_infusion = 8
+frac_infusion = 0.37, dur_infusion = 10
 
 $PKMODEL cmt = "GUT CENT", depot = TRUE
 
@@ -83,7 +85,15 @@ and the other gets both (green line):
 
 ``` r
 data <- as_data_set(infusion, zero, dose)
+
+data
 ```
+
+    .   ID time  cmt evid amt rate
+    . 1  1    0 CENT    1 100   -2
+    . 2  2    0  GUT    1 100    0
+    . 3  3    0 CENT    1 100   -2
+    . 4  3    0  GUT    1 100    0
 
 ``` r
 mrgsim_d(mod,data) %>% plot(GUT+CP~time)
