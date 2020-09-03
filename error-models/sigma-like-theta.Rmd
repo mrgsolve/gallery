@@ -1,0 +1,83 @@
+---
+title: "Sigma-Like THETA"
+output: 
+  github_document
+---
+
+```{r,echo = FALSE, message = FALSE}
+knitr::opts_chunk$set(fig.path = "img/sigma-like-theta-", comment='.', 
+                      message = FALSE, warning = FALSE)
+```
+
+```{r}
+library(tidyverse)
+library(mrgsolve)
+```
+
+In this model, we will model the residual error variances with parameters 
+(or THETAs) rather than SIGMAs. We will also model RUV in the standard way 
+(using SIGMAs) so we can compare.
+
+## In the model
+
+- parameter `THETA10` is proportional error
+- parameter `THETA11` is additive error
+- `SIGMA` 1 is equivalent to `THETA10` (proportional error)
+- `SIGMA` 2 is equivalent to `THETA11` (additive error)
+- `SIGMA` 3 would be fixed to 1 in the NONMEM run (here, just set to 1)
+
+
+```{r}
+code <- ' 
+$PARAM THETA10 = 0.025,  THETA11 = 5, CL = 1, V = 25
+
+$PKMODEL cmt = "CENT"
+
+$SIGMA 0.025 5
+
+$SIGMA 1 // "FIXED"
+
+$TABLE
+capture IPRED = CENT/V;
+
+double W = sqrt(THETA11 + THETA10*pow(IPRED,2.0));
+
+capture DV = IPRED + W*EPS(3);
+
+capture DV2 = IPRED*(1+EPS(1)) + EPS(2);
+'
+
+```
+
+__Compile__
+```{r}
+mod <- mcode("sigma-like-theta", code, delta = 0.5, end = 10000) 
+```
+
+__Simulate__
+```{r}
+out <- mrgsim_df(mod, events = ev(amt = 50, ii = 24, addl = 10000))
+```
+
+__Check__
+```{r}
+head(out)
+```
+
+__Plot__
+```{r}
+library(ggplot2)
+p <- ggplot(out, aes(sample = DV, distribution = DV2)) +  theme_bw()
+p + stat_qq_line(col = "firebrick", lwd = 1) + stat_qq() 
+```
+
+__Summarise__
+
+```{r}
+out %>% 
+  pivot_longer(cols = DV:DV2) %>% 
+  group_by(name) %>% 
+  summarise(tibble(mean = mean(value), SD = sd(value)), n = n())
+```
+
+
