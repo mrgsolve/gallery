@@ -11,6 +11,8 @@
   - [simeta example](population/simeta.md)
   - [Inter-occasion variability](population/iov.md)
   - [Simulate from bootstrap parameter estimates](population/bootstrap.md)
+- [Error models](error-models/README.md)
+  - [Sigma-Like THETA](error-models/sigma-like-theta.md)
 - [Data sets](data_sets/README.md)
   - [Input data sets](data_sets/input_data_sets.md)
 - [Application](application/README.md)
