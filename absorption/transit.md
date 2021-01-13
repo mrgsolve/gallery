@@ -19,6 +19,12 @@ Transit model with estimated compartment number
 
 See [transit.ctl](transit.ctl) for example NONMEM code.
 
+``` r
+library(tidyverse)
+library(mrgsim.sa)
+library(patchwork)
+```
+
 # Model code (mrgsolve)
 
 ``` r
@@ -79,24 +85,34 @@ mod <- mcode("transit", code, delta = 0.1, end = 32)
 mrgsim(mod, ev(amt = 100)) %>% plot()
 ```
 
-![](img/transit-unnamed-chunk-4-1.png)<!-- -->
+![](img/transit-unnamed-chunk-5-1.png)<!-- -->
 
 ## Sensitivity analysis on MTT
 
 ``` r
-idata <- tibble(MTT = seq(0.5, 10.5, 2))
+sims <- 
+  mod %>% 
+  ev(amt = 100) %>%
+  parseq_manual(MTT = seq_geo(1, 6, n = 6)) %>%
+  sens_each() 
 
-mrgsim(mod, events = ev(amt = 100), idata = idata) %>% plot()
+sens_plot(sims,   "DEPOT", plot_ref = FALSE, grid = TRUE) + 
+  sens_plot(sims, "CENT",  plot_ref = FALSE, grid = TRUE)
 ```
 
-![](img/transit-unnamed-chunk-5-1.png)<!-- -->
+![](img/transit-unnamed-chunk-6-1.png)<!-- -->
 
 ## Sensitivity analysis on NN
 
 ``` r
-idata <- tibble(NN = seq(1,21,2), MTT = 8)
+sims <- 
+  mod %>% 
+  ev(amt = 100) %>%
+  parseq_manual(NN = seq_geo(1, 20, n = 7)) %>%
+  sens_each() 
 
-mrgsim(mod, events = ev(amt = 100), idata = idata) %>% plot()
+sens_plot(sims,   "DEPOT", grid = TRUE, plot_ref = FALSE) + 
+  sens_plot(sims, "CENT",  grid = TRUE, plot_ref = FALSE)
 ```
 
-![](img/transit-unnamed-chunk-6-1.png)<!-- -->
+![](img/transit-unnamed-chunk-7-1.png)<!-- -->
