@@ -4,6 +4,7 @@
   - [Sequential Zero-/first-order absorption](absorption/sequential.md)
   - [Parallel zero-/first-order absorption](absorption/parallel.md)
   - [Time-varying KA](absorption/time-varying-ka.md)
+  - [Transit model with estimated NN](absorption/transit.md)
 - [Infusion](infusion/README.md)
   - [Modeling rate and duration](infusion/model_rate_duration.md)
 - [Population modeling](population/README.md)
