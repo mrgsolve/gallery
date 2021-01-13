@@ -96,4 +96,3 @@ idata <- tibble(NN = seq(1,21,2), MTT = 8)
 mrgsim(mod, events = ev(amt = 100), idata = idata) %>% plot()
 ```
 
-
