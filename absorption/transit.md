@@ -6,8 +6,7 @@ transit model
   - [Examples](#examples)
       - [Sensitivity analysis on MTT](#sensitivity-analysis-on-mtt)
       - [Sensitivity analysis on NN](#sensitivity-analysis-on-nn)
-
-See [transit.ctl](transit.ctl) for NONMEM code.
+  - [NONMEM control stream](#nonmem-control-stream)
 
 # Reference
 
@@ -100,3 +99,7 @@ mrgsim(mod, events = ev(amt = 100), idata = idata) %>% plot()
 ```
 
 ![](img/transit-unnamed-chunk-6-1.png)<!-- -->
+
+# NONMEM control stream
+
+See [transit.ctl](transit.ctl) for NONMEM code.
