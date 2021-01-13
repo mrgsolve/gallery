@@ -82,7 +82,7 @@ mrgsim(mod, ev(amt = 100)) %>% plot()
 
 ## Sensitivity analysis on MTT
 ```{r}
-idata <- tibble(MTT = seq(0.5, 10.5, 1))
+idata <- tibble(MTT = seq(0.5, 10.5, 2))
 
 mrgsim(mod, events = ev(amt = 100), idata = idata) %>% plot()
 ```
@@ -90,7 +90,7 @@ mrgsim(mod, events = ev(amt = 100), idata = idata) %>% plot()
 
 ## Sensitivity analysis on NN
 ```{r}
-idata <- tibble(NN = seq(1,20,1))
+idata <- tibble(NN = seq(1,21,2))
 
 mrgsim(mod, events = ev(amt = 100), idata = idata) %>% plot()
 ```
