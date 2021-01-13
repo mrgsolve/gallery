@@ -1,12 +1,11 @@
-transit model
+Transit model with estimated compartment number
 ================
 
   - [Reference](#reference)
-  - [Model code](#model-code)
+  - [Model code (mrgsolve)](#model-code-mrgsolve)
   - [Examples](#examples)
       - [Sensitivity analysis on MTT](#sensitivity-analysis-on-mtt)
       - [Sensitivity analysis on NN](#sensitivity-analysis-on-nn)
-  - [NONMEM control stream](#nonmem-control-stream)
 
 # Reference
 
@@ -18,7 +17,9 @@ transit model
 ; J Pharmacokinet Pharmacodyn (2012) 39:251-262 DOI 10.1007/s10928-012-9247-3
 ```
 
-# Model code
+See [transit.ctl](transit.ctl) for example NONMEM code.
+
+# Model code (mrgsolve)
 
 ``` r
 library(mrgsolve)
@@ -99,7 +100,3 @@ mrgsim(mod, events = ev(amt = 100), idata = idata) %>% plot()
 ```
 
 ![](img/transit-unnamed-chunk-6-1.png)<!-- -->
-
-# NONMEM control stream
-
-See [transit.ctl](transit.ctl) for NONMEM code.

@@ -1,5 +1,5 @@
 ---
-title: "transit model"
+title: "Transit model with estimated compartment number"
 output: 
   github_document: 
     toc: true
@@ -14,13 +14,16 @@ output:
 ; J Pharmacokinet Pharmacodyn (2012) 39:251-262 DOI 10.1007/s10928-012-9247-3
 ```
 
+See [transit.ctl](transit.ctl) for example NONMEM code.
+
+
 ```{r,echo = FALSE, message = FALSE}
 knitr::opts_chunk$set(fig.path = "img/transit-", comment='.', 
                       message = FALSE, warning = FALSE)
 library(tidyverse)
 ```
 
-# Model code
+# Model code (mrgsolve)
 
 ```{r}
 library(mrgsolve)
@@ -96,7 +99,5 @@ idata <- tibble(NN = seq(1,21,2), MTT = 8)
 mrgsim(mod, events = ev(amt = 100), idata = idata) %>% plot()
 ```
 
-# NONMEM control stream
 
-See [transit.ctl](transit.ctl) for NONMEM code.
 
