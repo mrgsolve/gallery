@@ -1,7 +1,7 @@
 transit model
 ================
 
-See \[transit.ctl\] for NONMEM code.
+See [transit.ctl](transit.ctl) for NONMEM code.
 
 # Reference
 
