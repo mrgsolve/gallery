@@ -26,6 +26,7 @@ MTT = 5, NN = 5,   BIO = 1
 [ cmt ] DEPOT CENT
 
 [ global ] 
+
 int NDOSE = 0;
 double dosetime[300];
 double dose[300];
@@ -68,7 +69,7 @@ dxdt_CENT = KTR * DEPOT - (CL/V) * CENT;
 # Examples
 
 ``` r
-mod <- mcode("transit", code, delta = 0.1, end = 48)
+mod <- mcode("transit", code, delta = 0.1, end = 32)
 mrgsim(mod, ev(amt = 100)) %>% plot()
 ```
 
