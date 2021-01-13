@@ -43,7 +43,7 @@ if(self.amt > 0 && self.cmt==1) {
 
 F_DEPOT = 0; 
 double KTR  = (NN+1) / MTT; 
-double NFAC = sqrt(2.0*3.1416)*pow(NN,NN+0.5)*(exp(-NN))*(1.0+1.0/(12.0*NN)); 
+double NFAC = exp(lgamma(NN+1));
 double KINPT = BIO * pow(KTR,(NN+1)) / NFAC; 
 
 [ ode ] 
@@ -88,7 +88,7 @@ mrgsim(mod, events = ev(amt = 100), idata = idata) %>% plot()
 ## Sensitivity analysis on NN
 
 ``` r
-idata <- tibble(NN = seq(1,21,2))
+idata <- tibble(NN = seq(1,21,2), MTT = 8)
 
 mrgsim(mod, events = ev(amt = 100), idata = idata) %>% plot()
 ```
