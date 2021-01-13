@@ -1,6 +1,12 @@
 transit model
 ================
 
+  - [Reference](#reference)
+  - [Model code](#model-code)
+  - [Examples](#examples)
+      - [Sensitivity analysis on MTT](#sensitivity-analysis-on-mtt)
+      - [Sensitivity analysis on NN](#sensitivity-analysis-on-nn)
+
 See [transit.ctl](transit.ctl) for NONMEM code.
 
 # Reference

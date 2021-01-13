@@ -1,6 +1,8 @@
 ---
 title: "transit model"
-output: github_document
+output: 
+  github_document: 
+    toc: true
 ---
 
 See [transit.ctl](transit.ctl) for NONMEM code.
