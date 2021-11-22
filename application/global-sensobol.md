@@ -1,7 +1,7 @@
 Sobol sensitivity analysis using sensobol
 ================
 Kyle Baron
-2021-11-22 15:49:08
+2021-11-22 16:04:20
 
 -   [Tools](#tools)
 -   [The sunitinib PK model](#the-sunitinib-pk-model)
@@ -71,6 +71,8 @@ see(mod)
 
 ## Sunitinib dosing
 
+We are just looking at a single dose for now.
+
 ``` r
 sunev <- function(amt = 50,...) ev(amt = amt, ...)
 ```
@@ -83,7 +85,25 @@ sunev <- function(amt = 50,...) ev(amt = amt, ...)
 N <- 2 ^ 15
 ```
 
-**Distribution**
+**Generate**
+
+``` r
+mat <- sobol_matrices(N = N, params = c("TVCL", "TVVC", "TVKA", "TVQ", "TVVP"))
+mat <- as_tibble(mat)
+head(mat)
+```
+
+    . # A tibble: 6 × 5
+    .    TVCL  TVVC  TVKA   TVQ  TVVP
+    .   <dbl> <dbl> <dbl> <dbl> <dbl>
+    . 1 0.5   0.5   0.5   0.5   0.5  
+    . 2 0.75  0.25  0.75  0.25  0.75 
+    . 3 0.25  0.75  0.25  0.75  0.25 
+    . 4 0.375 0.375 0.625 0.125 0.875
+    . 5 0.875 0.875 0.125 0.625 0.375
+    . 6 0.625 0.125 0.375 0.375 0.125
+
+**Transform and groom**
 
 For this example, we will just take uniform samples based on the
 logarithm of the current value of the parameter.
@@ -92,15 +112,15 @@ logarithm of the current value of the parameter.
 params <- unlist(as.list(param(mod))[c("TVCL", "TVVC", "TVKA", "TVQ", "TVVP")])
 umin <- log(params / 5)
 umax <- log(params * 5)
+umin
 ```
 
-**Generate**
+    .      TVCL      TVVC      TVKA       TVQ      TVVP 
+    .  2.337952  6.006353 -3.244194  0.367417  4.758749
 
-``` r
-mat <- as_tibble(sobol_matrices(N = N, params = c("TVCL", "TVVC", "TVKA", "TVQ", "TVVP")))
-```
-
-**Transform and groom**
+After setting the minimum and maximum for each parameter, get the value
+of the parameter by looking at the quantiles of the (log uniform)
+distribution
 
 ``` r
 mat2 <- imodify(mat, ~ qunif(.x, umin[[.y]], umax[[.y]]))
@@ -151,16 +171,16 @@ ind
     . 
     . Sum of first order indices: 0.772696 
     .         original          bias    std.error       low.ci     high.ci
-    .  1: 0.1800927710  3.713703e-04 0.0084472108  0.163165172 0.196277630
-    .  2: 0.5169806384  4.025369e-04 0.0062918286  0.504246344 0.528909859
-    .  3: 0.0722516683  4.572892e-04 0.0067438210  0.058576733 0.085012025
-    .  4: 0.0029247659  4.538916e-04 0.0059300225 -0.009151756 0.014093505
-    .  5: 0.0004461823  3.174973e-04 0.0055779353 -0.010803867 0.011061237
-    .  6: 0.3828283356 -1.992348e-05 0.0057454181  0.371587447 0.394109072
-    .  7: 0.7289651275 -5.446301e-04 0.0087529530  0.712354285 0.746665230
-    .  8: 0.1162534021  6.669582e-05 0.0019249053  0.112413961 0.119959451
-    .  9: 0.0119834278 -7.208326e-07 0.0003664219  0.011265975 0.012702322
-    . 10: 0.0019679814 -1.318534e-06 0.0001110980  0.001751552 0.002187048
+    .  1: 0.1800927710 -3.760867e-05 0.0083827287  0.163700533 0.196560226
+    .  2: 0.5169806384  5.584292e-05 0.0063099667  0.504557488 0.529292103
+    .  3: 0.0722516683 -4.918588e-05 0.0071581797  0.058271080 0.086330629
+    .  4: 0.0029247659 -1.986201e-04 0.0060640325 -0.008761899 0.015008671
+    .  5: 0.0004461823 -1.952871e-04 0.0058164982 -0.010758658 0.012041596
+    .  6: 0.3828283356 -9.581848e-05 0.0057481914  0.371657906 0.394190402
+    .  7: 0.7289651275  4.369649e-04 0.0083652767  0.712132521 0.744923804
+    .  8: 0.1162534021  3.975808e-05 0.0018896917  0.112509916 0.119917372
+    .  9: 0.0119834278 -2.048331e-05 0.0003762510  0.011266473 0.012741350
+    . 10: 0.0019679814  6.215041e-06 0.0001117312  0.001742777 0.002180756
     .     sensitivity parameters
     .  1:          Si       TVCL
     .  2:          Si       TVVC

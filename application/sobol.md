@@ -1,7 +1,7 @@
 Sobol sensitivity analysis
 ================
 Kyle Baron and Ahmed Elmokadem
-2021-07-28 17:35:08
+2021-11-22 16:01:02
 
 -   [Reference / About](#reference--about)
 -   [Tools](#tools)
@@ -25,6 +25,11 @@ Models**. CPT Pharmacometrics Syst Pharmacol. 2015 Feb;4(2):69-79. doi:
 
 This example replicates an analysis presented in the Zhang et al. paper,
 but here using mrgsolve and other tools available for R.
+
+**NOTE**: This example uses the `sensitivity` package to run the
+analysis. This package works well, but I am now preferring the
+`sensobol` package. You can see the same analysis run with `sensobol`
+here: [global-sensobol.md](global-sensobol.md).
 
 # Tools
 
@@ -97,7 +102,7 @@ the sobol function.
 
 ``` r
 gen_samples <- function(n, l, which = names(l), 
-                        factor = c(0.1,10)) {
+                        factor = c(0.2,5)) {
   
   vars <- tidyselect::vars_select(names(l), !!(enquo(which)))
   
@@ -162,13 +167,13 @@ samp <- gen_samples(10000, param(mod), TVCL:TVVP)
 head(samp$x1)
 ```
 
-    .         TVCL       TVVC       TVKA       TVQ       TVVP
-    . 1   8.608178  3319.7761 0.02294751  2.441683  120.16921
-    . 2   8.713837 15791.3948 0.63534638 10.709428 1168.69128
-    . 3 368.959778  1056.8573 0.02819864 24.773588   97.78583
-    . 4 400.369944  1376.2384 0.13515809  7.143678  818.15172
-    . 5 341.677497   459.6150 0.18384088 19.358219  562.02095
-    . 6 181.220458   673.0695 0.03846543  7.136121 2476.55036
+    .        TVCL      TVVC       TVKA      TVQ      TVVP
+    . 1 105.19835 3683.1006 0.04088887 2.334924  549.2293
+    . 2  82.81668 3745.2574 0.04704564 2.985555  156.0289
+    . 3  80.44561  564.3977 0.30977500 5.207510  517.3773
+    . 4  40.43505 8619.9091 0.19579378 2.128595  169.9813
+    . 5  76.97500 3152.2796 0.34911939 1.901407 1803.5818
+    . 6  99.79838  629.4909 0.07681993 1.996189  397.5637
 
 ## Then, run `sensitivity::sobol2007`
 
@@ -195,17 +200,17 @@ x
     . Model runs: 700000 
     . 
     . First order indices:
-    .          original          bias   std. error   min. c.i.   max. c.i.
-    . TVCL 0.1979690453 -1.053888e-04 0.0052982790  0.18764614 0.208241256
-    . TVVC 0.3750716575  2.058715e-05 0.0080033687  0.35936809 0.391380259
-    . TVKA 0.0669549268  8.332064e-05 0.0023052791  0.06248294 0.071461807
-    . TVQ  0.0057798916  1.706376e-05 0.0010712851  0.00366490 0.007815363
-    . TVVP 0.0002899744  6.098216e-06 0.0006135896 -0.00098076 0.001465525
+    .          original         bias   std. error    min. c.i.   max. c.i.
+    . TVCL 0.1823489631 2.657960e-05 0.0050160337 1.725997e-01 0.192263576
+    . TVVC 0.5141753555 3.220217e-04 0.0084467828 4.975119e-01 0.532512447
+    . TVKA 0.0749283884 2.617883e-05 0.0023733276 7.011287e-02 0.079424818
+    . TVQ  0.0035332569 3.077143e-05 0.0007774327 2.012456e-03 0.005085881
+    . TVVP 0.0007372073 7.951747e-06 0.0003337387 6.274435e-05 0.001391284
     . 
     . Total indices:
-    .        original          bias  std. error   min. c.i.  max. c.i.
-    . TVCL 0.49950899 -3.385304e-05 0.007106738 0.486126040 0.51325048
-    . TVVC 0.70335670 -2.747905e-05 0.006708954 0.689897688 0.71692880
-    . TVKA 0.15247316 -4.963958e-05 0.005027915 0.142499870 0.16235736
-    . TVQ  0.03812596 -1.121061e-04 0.003581700 0.031257933 0.04537120
-    . TVVP 0.01225372 -8.378933e-05 0.001861244 0.008611578 0.01588701
+    .         original          bias   std. error    min. c.i.   max. c.i.
+    . TVCL 0.377112176 -8.662422e-05 0.0063352451  0.365162809 0.389724738
+    . TVVC 0.720157338 -5.407326e-05 0.0069729474  0.705741837 0.733569927
+    . TVKA 0.112670286  8.308806e-05 0.0040604439  0.104782560 0.120670548
+    . TVQ  0.007889849 -6.996931e-05 0.0018116421  0.004318470 0.011529577
+    . TVVP 0.001242264 -5.662055e-06 0.0007009531 -0.000142662 0.002668531

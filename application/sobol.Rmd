@@ -22,6 +22,11 @@ PMID: [27548289](https://www.ncbi.nlm.nih.gov/pubmed/27548289)
 This example replicates an analysis presented in the Zhang et al. paper, 
 but here using mrgsolve and other tools available for R.
 
+__NOTE__: This example uses the `sensitivity` package to run the analysis. This 
+package works well, but I am now preferring the `sensobol` package. You can 
+see the same analysis run with `sensobol` here: [global-sensobol.md](global-sensobol.md). 
+
+
 
 # Tools
 ```{r}
@@ -60,7 +65,7 @@ can be passed into the sobol function.
 
 ```{r}
 gen_samples <- function(n, l, which = names(l), 
-                        factor = c(0.1,10)) {
+                        factor = c(0.2,5)) {
   
   vars <- tidyselect::vars_select(names(l), !!(enquo(which)))
   
