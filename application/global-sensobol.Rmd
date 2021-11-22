@@ -1,0 +1,103 @@
+---
+title: Sobol sensitivity analysis using sensobol
+author: "Kyle Baron"
+date: "`r Sys.time()`"
+output:
+  github_document:
+    toc: TRUE
+---
+
+```{r, echo = FALSE}
+knitr::opts_chunk$set(message = FALSE, warning = FALSE, 
+                      comment = '.', fig.path = "img/sensobol")
+```
+
+
+# Tools
+```{r}
+library(mrgsolve)
+library(tidyverse)
+library(PKPDmisc)
+library(data.table)
+library(sensobol)
+```
+
+# The sunitinib PK model
+```{r}
+mod <- mread("sunit", "model") %>% 
+  update(end = 24, delta = 1) %>% zero_re
+```
+
+```{r}
+see(mod)
+```
+
+## Sunitinib dosing 
+```{r}
+sunev <- function(amt = 50,...) ev(amt = amt, ...)
+```
+
+# Generate samples
+
+__Number__
+```{r}
+N <- 2 ^ 15
+```
+
+__Distribution__
+
+For this example, we will just take uniform samples based on the logarithm of
+the current value of the parameter. 
+```{r}
+params <- unlist(as.list(param(mod))[c("TVCL", "TVVC", "TVKA", "TVQ", "TVVP")])
+umin <- log(params / 5)
+umax <- log(params * 5)
+```
+
+
+__Generate__
+
+```{r}
+mat <- as_tibble(sobol_matrices(N = N, params = c("TVCL", "TVVC", "TVKA", "TVQ", "TVVP")))
+```
+
+
+__Transform and groom__
+```{r}
+mat2 <- imodify(mat, ~ qunif(.x, umin[[.y]], umax[[.y]]))
+mat2 <- mutate(mat2, across(everything(), exp), ID = row_number())
+head(mat)
+```
+
+# Run the analysis
+
+## Simulation
+
+```{r}
+out <- mrgsim_ei(mod, sunev(), mat2, output = "df")
+out <- as.data.table(out)
+```
+
+## Calculate AUC
+
+```{r}
+y <- out[, list(auc = auc_partial(time,CP)), by = "ID"][["auc"]]
+```
+
+## Indices
+
+```{r}
+ind <- sobol_indices(Y = y, N = N, params = names(params), boot = TRUE, R = 1000, first = "jansen")
+ind.dummy <- sobol_dummy(Y = y, N = N, params = names(params), boot = TRUE, R = 1000)
+```
+
+```{r}
+ind
+```
+
+
+## Visualize
+
+```{r}
+plot(ind, dummy = ind.dummy) + ylim(0,1)
+```

@@ -1,19 +1,19 @@
 Sobol sensitivity analysis
 ================
 Kyle Baron and Ahmed Elmokadem
-2019-09-04 14:10:20
+2021-07-28 17:35:08
 
-  - [Reference / About](#reference-about)
-  - [Tools](#tools)
-  - [The sunitinib PK model](#the-sunitinib-pk-model)
-      - [Sunitinib dosing](#sunitinib-dosing)
-  - [Generate samples](#generate-samples)
-  - [A bunch of helper functions](#a-bunch-of-helper-functions)
-  - [Run the analysis](#run-the-analysis)
-      - [First, generate the samples](#first-generate-the-samples)
-      - [Then, run
+-   [Reference / About](#reference--about)
+-   [Tools](#tools)
+-   [The sunitinib PK model](#the-sunitinib-pk-model)
+    -   [Sunitinib dosing](#sunitinib-dosing)
+-   [Generate samples](#generate-samples)
+-   [A bunch of helper functions](#a-bunch-of-helper-functions)
+-   [Run the analysis](#run-the-analysis)
+    -   [First, generate the samples](#first-generate-the-samples)
+    -   [Then, run
         `sensitivity::sobol2007`](#then-run-sensitivitysobol2007)
-  - [Results](#results)
+-   [Results](#results)
 
 # Reference / About
 
@@ -89,15 +89,15 @@ sunev <- function(amt = 50,...) ev(amt = amt, ...)
 
 # Generate samples
 
-Th function generates uniform samples from a 100 fold decrease to 100
-fold increase in the nominal parameter value.
+Th function generates uniform samples from a 5 fold decrease to 5 fold
+increase in the nominal parameter value.
 
 The return value is a list with two data frames that can be passed into
 the sobol function.
 
 ``` r
 gen_samples <- function(n, l, which = names(l), 
-                        factor = c(0.01,100)) {
+                        factor = c(0.1,10)) {
   
   vars <- tidyselect::vars_select(names(l), !!(enquo(which)))
   
@@ -162,18 +162,18 @@ samp <- gen_samples(10000, param(mod), TVCL:TVVP)
 head(samp$x1)
 ```
 
-    .          TVCL       TVVC         TVKA         TVQ       TVVP
-    . 1    1.361773  559.02011  1.411879296   6.5166076   12.45871
-    . 2    7.528564 5791.84475  0.003626071 137.5590446 8153.91343
-    . 3    2.838735 6238.19311  0.006786784   3.3999461   40.93909
-    . 4 1083.214399  596.20614 10.351813055  27.3969644  257.47784
-    . 5  222.154810 7873.06062  0.025234897   0.5845153  100.41110
-    . 6   29.087651   27.43569  0.004670174   0.1685278 2471.69992
+    .         TVCL       TVVC       TVKA       TVQ       TVVP
+    . 1   8.608178  3319.7761 0.02294751  2.441683  120.16921
+    . 2   8.713837 15791.3948 0.63534638 10.709428 1168.69128
+    . 3 368.959778  1056.8573 0.02819864 24.773588   97.78583
+    . 4 400.369944  1376.2384 0.13515809  7.143678  818.15172
+    . 5 341.677497   459.6150 0.18384088 19.358219  562.02095
+    . 6 181.220458   673.0695 0.03846543  7.136121 2476.55036
 
 ## Then, run `sensitivity::sobol2007`
 
 ``` r
-x <- sobol2007(batch_run, X1=samp$x1, X2=samp$x2, nboot=100)
+x <- sobol2007(batch_run, X1=samp$x1, X2=samp$x2, nboot=1000)
 ```
 
 # Results
@@ -190,22 +190,22 @@ x
 
     . 
     . Call:
-    . sobol2007(model = batch_run, X1 = samp$x1, X2 = samp$x2, nboot = 100)
+    . sobol2007(model = batch_run, X1 = samp$x1, X2 = samp$x2, nboot = 1000)
     . 
     . Model runs: 700000 
     . 
     . First order indices:
-    .         original          bias  std. error   min. c.i.  max. c.i.
-    . TVCL 0.111610862 -1.718937e-04 0.006474346 0.098965610 0.12602305
-    . TVVC 0.153619118 -9.389818e-04 0.008221707 0.139729172 0.17155083
-    . TVKA 0.028567213  1.872252e-04 0.002373118 0.023773938 0.03313045
-    . TVQ  0.008698163  2.222233e-05 0.002046892 0.004592815 0.01244719
-    . TVVP 0.004631098 -6.015749e-05 0.001256271 0.002085233 0.00704924
+    .          original          bias   std. error   min. c.i.   max. c.i.
+    . TVCL 0.1979690453 -1.053888e-04 0.0052982790  0.18764614 0.208241256
+    . TVVC 0.3750716575  2.058715e-05 0.0080033687  0.35936809 0.391380259
+    . TVKA 0.0669549268  8.332064e-05 0.0023052791  0.06248294 0.071461807
+    . TVQ  0.0057798916  1.706376e-05 0.0010712851  0.00366490 0.007815363
+    . TVVP 0.0002899744  6.098216e-06 0.0006135896 -0.00098076 0.001465525
     . 
     . Total indices:
-    .        original          bias  std. error  min. c.i. max. c.i.
-    . TVCL 0.69602357 -3.135509e-04 0.011714859 0.67593136 0.7220769
-    . TVVC 0.74711857 -8.026551e-04 0.010320519 0.72897110 0.7679636
-    . TVKA 0.25952423 -2.597943e-05 0.011324677 0.23568274 0.2840098
-    . TVQ  0.22073262  2.781637e-04 0.009763087 0.20292239 0.2407872
-    . TVVP 0.09843795  1.719443e-04 0.007096819 0.08291732 0.1120978
+    .        original          bias  std. error   min. c.i.  max. c.i.
+    . TVCL 0.49950899 -3.385304e-05 0.007106738 0.486126040 0.51325048
+    . TVVC 0.70335670 -2.747905e-05 0.006708954 0.689897688 0.71692880
+    . TVKA 0.15247316 -4.963958e-05 0.005027915 0.142499870 0.16235736
+    . TVQ  0.03812596 -1.121061e-04 0.003581700 0.031257933 0.04537120
+    . TVVP 0.01225372 -8.378933e-05 0.001861244 0.008611578 0.01588701

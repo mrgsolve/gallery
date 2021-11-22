@@ -51,7 +51,7 @@ sunev <- function(amt = 50,...) ev(amt = amt, ...)
 # Generate samples
 
 Th function generates uniform samples from a 
-100 fold decrease to 100 fold increase in the 
+5 fold decrease to 5 fold increase in the 
 nominal parameter value.
 
 The return value is a list with two data frames that
@@ -60,7 +60,7 @@ can be passed into the sobol function.
 
 ```{r}
 gen_samples <- function(n, l, which = names(l), 
-                        factor = c(0.01,100)) {
+                        factor = c(0.1,10)) {
   
   vars <- tidyselect::vars_select(names(l), !!(enquo(which)))
   
@@ -117,7 +117,6 @@ batch_run <- function(x) {
 ```
 
 
-
 # Run the analysis
 
 ## First, generate the samples
@@ -129,7 +128,7 @@ head(samp$x1)
 
 ## Then, run `sensitivity::sobol2007`
 ```{r}
-x <- sobol2007(batch_run, X1=samp$x1, X2=samp$x2, nboot=100)
+x <- sobol2007(batch_run, X1=samp$x1, X2=samp$x2, nboot=1000)
 ```
 
 # Results
