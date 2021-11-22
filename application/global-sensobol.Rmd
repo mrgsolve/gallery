@@ -76,7 +76,7 @@ parameter by looking at the quantiles of the (log uniform) distribution
 ```{r}
 mat2 <- imodify(mat, ~ qunif(.x, umin[[.y]], umax[[.y]]))
 mat2 <- mutate(mat2, across(everything(), exp), ID = row_number())
-head(mat)
+head(mat2)
 ```
 
 # Run the analysis
