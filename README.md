@@ -17,7 +17,7 @@
 - [Data sets](data_sets/README.md)
   - [Input data sets](data_sets/input_data_sets.md)
 - [Application](application/README.md)
-  - [Sobol sensitivity analysis - with sensobol package](global-sensobol.md)
+  - [Sobol sensitivity analysis - with sensobol package](application/global-sensobol.md)
   - [Sobol sensitivity analysis - with sensitivity package](application/sobol.md)
   - [Parallel simulation](application/parallel.md)
   - [Estimate parameters for two endpoints](application/two_endpoints.md)
