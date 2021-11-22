@@ -60,12 +60,13 @@ head(mat)
 
 __Transform and groom__
 
-For this example, we will just take uniform samples based on the logarithm of
-the current value of the parameter. 
+For this example, we will just take uniform samples based on the the current 
+value of the parameter. 
+
 ```{r}
 params <- unlist(as.list(param(mod))[c("TVCL", "TVVC", "TVKA", "TVQ", "TVVP")])
-umin <- log(params / 5)
-umax <- log(params * 5)
+umin <- params / 5
+umax <- params * 5
 umin
 ```
 
@@ -75,7 +76,7 @@ parameter by looking at the quantiles of the (log uniform) distribution
 
 ```{r}
 mat2 <- imodify(mat, ~ qunif(.x, umin[[.y]], umax[[.y]]))
-mat2 <- mutate(mat2, across(everything(), exp), ID = row_number())
+mat2 <- mutate(mat2, ID = row_number())
 head(mat2)
 ```
 
@@ -110,4 +111,15 @@ ind
 
 ```{r}
 plot(ind, dummy = ind.dummy) + ylim(0,1)
+```
+
+
+Plot outputs versus inputs
+
+```{r}
+plot_scatter(N = 2000, data = mat2, Y = y, params = names(mat))
+```
+
+```{r, fig.height = 8}
+plot_multiscatter(N = 2000, data = mat2, Y = y, params = names(mat))
 ```

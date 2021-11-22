@@ -1,7 +1,7 @@
 Sobol sensitivity analysis using sensobol
 ================
 Kyle Baron
-2021-11-22 16:05:53
+2021-11-22 16:27:20
 
 -   [Tools](#tools)
 -   [The sunitinib PK model](#the-sunitinib-pk-model)
@@ -105,18 +105,18 @@ head(mat)
 
 **Transform and groom**
 
-For this example, we will just take uniform samples based on the
-logarithm of the current value of the parameter.
+For this example, we will just take uniform samples based on the the
+current value of the parameter.
 
 ``` r
 params <- unlist(as.list(param(mod))[c("TVCL", "TVVC", "TVKA", "TVQ", "TVVP")])
-umin <- log(params / 5)
-umax <- log(params * 5)
+umin <- params / 5
+umax <- params * 5
 umin
 ```
 
-    .      TVCL      TVVC      TVKA       TVQ      TVVP 
-    .  2.337952  6.006353 -3.244194  0.367417  4.758749
+    .    TVCL    TVVC    TVKA     TVQ    TVVP 
+    .  10.360 406.000   0.039   1.444 116.600
 
 After setting the minimum and maximum for each parameter, get the value
 of the parameter by looking at the quantiles of the (log uniform)
@@ -124,19 +124,19 @@ distribution
 
 ``` r
 mat2 <- imodify(mat, ~ qunif(.x, umin[[.y]], umax[[.y]]))
-mat2 <- mutate(mat2, across(everything(), exp), ID = row_number())
+mat2 <- mutate(mat2, ID = row_number())
 head(mat2)
 ```
 
     . # A tibble: 6 × 6
-    .    TVCL  TVVC   TVKA   TVQ  TVVP    ID
-    .   <dbl> <dbl>  <dbl> <dbl> <dbl> <int>
-    . 1  51.8 2030  0.195   7.22  583      1
-    . 2 116.   908. 0.436   3.23 1304.     2
-    . 3  23.2 4539. 0.0872 16.1   261.     3
-    . 4  34.6 1358. 0.292   2.16 1949.     4
-    . 5 173.  6788. 0.0583 10.8   390.     5
-    . 6  77.5  607. 0.130   4.83  174.     6
+    .    TVCL  TVVC  TVKA   TVQ  TVVP    ID
+    .   <dbl> <dbl> <dbl> <dbl> <dbl> <int>
+    . 1 135.   5278 0.507 18.8  1516.     1
+    . 2 197.   2842 0.741 10.1  2215.     2
+    . 3  72.5  7714 0.273 27.4   816.     3
+    . 4 104.   4060 0.624  5.78 2565.     4
+    . 5 228.   8932 0.156 23.1  1166      5
+    . 6 166.   1624 0.39  14.4   466.     6
 
 # Run the analysis
 
@@ -169,18 +169,18 @@ ind
     . 
     . Total number of model runs: 229376 
     . 
-    . Sum of first order indices: 0.772696 
-    .         original          bias    std.error       low.ci     high.ci
-    .  1: 0.1800927710  1.238243e-05 0.0081723319  0.164062912 0.196097865
-    .  2: 0.5169806384 -7.072754e-06 0.0064265026  0.504391998 0.529583425
-    .  3: 0.0722516683  3.017526e-05 0.0065358709  0.059411422 0.085031565
-    .  4: 0.0029247659  3.563857e-05 0.0057386288 -0.008358378 0.014136633
-    .  5: 0.0004461823  7.463826e-05 0.0053585629 -0.010131046 0.010874134
-    .  6: 0.3828283356  3.441830e-04 0.0059880652  0.370747760 0.394220545
-    .  7: 0.7289651275  1.251542e-04 0.0082027993  0.712762782 0.744917165
-    .  8: 0.1162534021  1.782163e-05 0.0019111638  0.112489768 0.119981393
-    .  9: 0.0119834278  1.625625e-05 0.0003719938  0.011238077 0.012696266
-    . 10: 0.0019679814  2.644654e-06 0.0001137576  0.001742376 0.002188298
+    . Sum of first order indices: 0.7380731 
+    .          original          bias    std.error       low.ci     high.ci
+    .  1:  0.1386450195 -5.443701e-05 0.0134605344  0.112317294 0.165081619
+    .  2:  0.5702287103 -1.415956e-04 0.0102223164  0.550334934 0.590405678
+    .  3:  0.0302745338  2.545441e-04 0.0061872971  0.017893110 0.042146869
+    .  4:  0.0000557737  1.652504e-04 0.0063841189 -0.012622120 0.012403167
+    .  5: -0.0011309726 -4.711711e-05 0.0054836856 -0.011831682 0.009663971
+    .  6:  0.3885564747  1.018732e-04 0.0100190499  0.368817625 0.408091579
+    .  7:  0.8235786500  6.278763e-04 0.0138431873  0.795818625 0.850082922
+    .  8:  0.0429891387  2.074858e-05 0.0012776991  0.040464146 0.045472634
+    .  9:  0.0084979002 -6.232607e-06 0.0005036811  0.007516936 0.009491330
+    . 10:  0.0013766977 -2.950487e-06 0.0001292514  0.001126320 0.001632976
     .     sensitivity parameters
     .  1:          Si       TVCL
     .  2:          Si       TVVC
@@ -200,3 +200,17 @@ plot(ind, dummy = ind.dummy) + ylim(0,1)
 ```
 
 ![](img/sensobolunnamed-chunk-14-1.png)<!-- -->
+
+Plot outputs versus inputs
+
+``` r
+plot_scatter(N = 2000, data = mat2, Y = y, params = names(mat))
+```
+
+![](img/sensobolunnamed-chunk-15-1.png)<!-- -->
+
+``` r
+plot_multiscatter(N = 2000, data = mat2, Y = y, params = names(mat))
+```
+
+![](img/sensobolunnamed-chunk-16-1.png)<!-- -->
