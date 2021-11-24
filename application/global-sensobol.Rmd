@@ -26,6 +26,28 @@ __NOTE__: This example uses the `sensobol` package to run the analysis. This is
 my preferred package for global sensitivity analysis. You can 
 see the same analysis run with `sensitivity` here: [sobol.md](sobol.md). 
 
+# Introduction 
+
+This vignette shows you how to to Sobol sensitivity analysis, a form of global
+sensitivity analysis. In this type of analysis, we look at the relationship 
+between variability in input parameters and variability in model outputs when 
+model parameters are all varied together across the plausible parameter space. 
+This is in contrast to local sensitivity analysis, where parameters are 
+perturbed one at a time by small amounts. 
+
+To do Sobol sensitivity analysis, we will need the following
+
+1. A model with some parameters to manipulate 
+1. A (large) set of random parameter values covering a certain section of the 
+   plausible (or reasonable) parameter space
+1. An intervention of interest (e.g. a dose)
+1. A model output, summarized as a single value, that depends on the 
+   intervention and the value of the manipulated parameters (e.g. AUC for a 
+   PK model)
+1. Calculate sensitivity indices, which summarize the relationships between 
+   input parameters and model outputs
+1. Visualization or presentation of the indices
+
 
 # Tools
 ```{r setup}
@@ -39,7 +61,8 @@ library(sensobol)
 # The sunitinib PK model
 ```{r}
 mod <- mread("sunit", "model") %>% 
-  update(end = 24, delta = 0.5, outvars = "CP") %>% zero_re()
+  update(end = 24, delta = 0.5, outvars = "CP") %>% 
+  zero_re()
 ```
 
 ```{r}
@@ -101,7 +124,7 @@ head(mat2)
 
 
 If we wanted each parameter to have log-normal distribution with 30% coefficient
-of variation, we pass our uniform (0,1) variates into `qlnorm()` instead:
+of variation, we pass our uniform (0,1) variates into `qlnorm()` instead
 
 ```{r}
 mat3 <- imodify(mat, ~ qlnorm(.x, log(params[[.y]]), sqrt(0.09)))
@@ -116,7 +139,7 @@ We will use the uniform parameters that we generated above.
 ## Simulation
 
 Now, we have a set of parameters for the model and we can simulate PK over
-24 hours using `mrgsim_ei()`, passing in an event object and the idata set;
+24 hours using `mrgsim_ei()`, passing in an event object and the idata set
 
 ```{r}
 out <- mrgsim_ei(mod, sunev(), mat2, output = "df")
@@ -178,4 +201,6 @@ library(mrgsim.parallel)
 options(mc.cores = 4)
 system.time(out <- mc_mrgsim_ei(mod, sunev(), mat2))
 ```
+
+A small improvement; but the simulation didn't take that long to begin with.
 

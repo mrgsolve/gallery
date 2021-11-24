@@ -1,9 +1,10 @@
 Sobol sensitivity analysis using sensobol
 ================
 Kyle Baron
-2021-11-23 20:54:36
+2021-11-24 09:59:20
 
 -   [Reference / About](#reference--about)
+-   [Introduction](#introduction)
 -   [Tools](#tools)
 -   [The sunitinib PK model](#the-sunitinib-pk-model)
     -   [Sunitinib dosing](#sunitinib-dosing)
@@ -30,6 +31,28 @@ but here using mrgsolve and other tools available for R.
 This is my preferred package for global sensitivity analysis. You can
 see the same analysis run with `sensitivity` here: [sobol.md](sobol.md).
 
+# Introduction
+
+This vignette shows you how to to Sobol sensitivity analysis, a form of
+global sensitivity analysis. In this type of analysis, we look at the
+relationship between variability in input parameters and variability in
+model outputs when model parameters are all varied together across the
+plausible parameter space. This is in contrast to local sensitivity
+analysis, where parameters are perturbed one at a time by small amounts.
+
+To do Sobol sensitivity analysis, we will need the following
+
+1.  A model with some parameters to manipulate
+2.  A (large) set of random parameter values covering a certain section
+    of the plausible (or reasonable) parameter space
+3.  An intervention of interest (e.g. a dose)
+4.  A model output, summarized as a single value, that depends on the
+    intervention and the value of the manipulated parameters (e.g. AUC
+    for a PK model)
+5.  Calculate sensitivity indices, which summarize the relationships
+    between input parameters and model outputs
+6.  Visualization or presentation of the indices
+
 # Tools
 
 ``` r
@@ -44,7 +67,8 @@ library(sensobol)
 
 ``` r
 mod <- mread("sunit", "model") %>% 
-  update(end = 24, delta = 0.5, outvars = "CP") %>% zero_re()
+  update(end = 24, delta = 0.5, outvars = "CP") %>% 
+  zero_re()
 ```
 
 ``` r
@@ -170,7 +194,7 @@ head(mat2)
 
 If we wanted each parameter to have log-normal distribution with 30%
 coefficient of variation, we pass our uniform (0,1) variates into
-`qlnorm()` instead:
+`qlnorm()` instead
 
 ``` r
 mat3 <- imodify(mat, ~ qlnorm(.x, log(params[[.y]]), sqrt(0.09)))
@@ -207,7 +231,7 @@ We will use the uniform parameters that we generated above.
 
 Now, we have a set of parameters for the model and we can simulate PK
 over 24 hours using `mrgsim_ei()`, passing in an event object and the
-idata set;
+idata set
 
 ``` r
 out <- mrgsim_ei(mod, sunev(), mat2, output = "df")
@@ -238,16 +262,16 @@ ind
     . 
     . Sum of first order indices: 0.7398229 
     .          original          bias    std.error       low.ci     high.ci
-    .  1:  1.375835e-01 -2.133364e-05 0.0141654497  0.109841042 0.165368584
-    .  2:  5.726539e-01  5.806182e-04 0.0100436897  0.552387996 0.591758536
-    .  3:  3.066132e-02 -1.150453e-07 0.0061816838  0.018545560 0.042777316
-    .  4:  5.038748e-05 -7.861082e-05 0.0063949867 -0.012404945 0.012662942
-    .  5: -1.126222e-03 -2.460647e-05 0.0055430536 -0.011965801 0.009762570
-    .  6:  3.856616e-01  2.504690e-04 0.0092719454  0.367238473 0.403583831
-    .  7:  8.242978e-01  2.831511e-04 0.0134556062  0.797642190 0.850387197
-    .  8:  4.344805e-02  3.639725e-05 0.0013074453  0.040849111 0.045974202
-    .  9:  8.435194e-03  8.643610e-07 0.0004997969  0.007454746 0.009413914
-    . 10:  1.366155e-03  8.825688e-07 0.0001238518  0.001122528 0.001608018
+    .  1:  1.375835e-01  1.673795e-04 0.0144339243  0.109126128 0.165706071
+    .  2:  5.726539e-01  1.820566e-04 0.0101968211  0.552486425 0.592457230
+    .  3:  3.066132e-02 -1.531854e-05 0.0062171388  0.018491273 0.042862010
+    .  4:  5.038748e-05 -8.615300e-05 0.0066657139 -0.012928019 0.013201100
+    .  5: -1.126222e-03  8.305517e-06 0.0054329295 -0.011782873 0.009513819
+    .  6:  3.856616e-01  7.643038e-05 0.0093904140  0.367180317 0.403990064
+    .  7:  8.242978e-01 -4.596677e-04 0.0133185094  0.798653714 0.850861311
+    .  8:  4.344805e-02  9.622761e-05 0.0013358739  0.040733561 0.045970091
+    .  9:  8.435194e-03 -1.580320e-05 0.0005031955  0.007464752 0.009437242
+    . 10:  1.366155e-03 -4.903507e-06 0.0001302616  0.001115751 0.001626367
     .     sensitivity parameters
     .  1:          Si       TVCL
     .  2:          Si       TVVC
@@ -295,7 +319,7 @@ system.time(out <- mrgsim_ei(mod, sunev(), mat2, output = "df"))
 ```
 
     .    user  system elapsed 
-    .   6.136   0.135   6.284
+    .   6.245   0.122   6.395
 
 Or use the
 [mrgsim.parallel](https://github.com/kylebaron/mrgsim.parallel) package
@@ -308,4 +332,7 @@ system.time(out <- mc_mrgsim_ei(mod, sunev(), mat2))
 ```
 
     .    user  system elapsed 
-    .   6.753   1.274   2.528
+    .   6.814   1.189   2.458
+
+A small improvement; but the simulation didn’t take that long to begin
+with.
