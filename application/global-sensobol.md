@@ -1,7 +1,7 @@
 Sobol sensitivity analysis using sensobol
 ================
 Kyle Baron
-2021-11-24 09:59:20
+2021-11-24 11:51:39
 
 -   [Reference / About](#reference--about)
 -   [Introduction](#introduction)
@@ -262,16 +262,16 @@ ind
     . 
     . Sum of first order indices: 0.7398229 
     .          original          bias    std.error       low.ci     high.ci
-    .  1:  1.375835e-01  1.673795e-04 0.0144339243  0.109126128 0.165706071
-    .  2:  5.726539e-01  1.820566e-04 0.0101968211  0.552486425 0.592457230
-    .  3:  3.066132e-02 -1.531854e-05 0.0062171388  0.018491273 0.042862010
-    .  4:  5.038748e-05 -8.615300e-05 0.0066657139 -0.012928019 0.013201100
-    .  5: -1.126222e-03  8.305517e-06 0.0054329295 -0.011782873 0.009513819
-    .  6:  3.856616e-01  7.643038e-05 0.0093904140  0.367180317 0.403990064
-    .  7:  8.242978e-01 -4.596677e-04 0.0133185094  0.798653714 0.850861311
-    .  8:  4.344805e-02  9.622761e-05 0.0013358739  0.040733561 0.045970091
-    .  9:  8.435194e-03 -1.580320e-05 0.0005031955  0.007464752 0.009437242
-    . 10:  1.366155e-03 -4.903507e-06 0.0001302616  0.001115751 0.001626367
+    .  1:  1.375835e-01 -2.008698e-04 0.0145368304  0.109292685 0.166276013
+    .  2:  5.726539e-01  1.385819e-04 0.0098216365  0.553265249 0.591765356
+    .  3:  3.066132e-02 -3.764967e-04 0.0065888213  0.018123967 0.043951672
+    .  4:  5.038748e-05 -1.912074e-04 0.0068245949 -0.013134365 0.013617555
+    .  5: -1.126222e-03 -2.926436e-04 0.0056774531 -0.011961182 0.010294025
+    .  6:  3.856616e-01  3.235982e-04 0.0095053578  0.366707864 0.403968181
+    .  7:  8.242978e-01  8.798144e-04 0.0136717300  0.796621932 0.850214129
+    .  8:  4.344805e-02  5.183030e-05 0.0012803764  0.040886732 0.045905715
+    .  9:  8.435194e-03  2.362716e-05 0.0004845244  0.007461917 0.009361217
+    . 10:  1.366155e-03 -3.953487e-06 0.0001270931  0.001121011 0.001619207
     .     sensitivity parameters
     .  1:          Si       TVCL
     .  2:          Si       TVVC
@@ -286,11 +286,21 @@ ind
 
 ## Visualize
 
+First, plot uncertainty in outcome
+
+``` r
+plot_uncertainty(Y = y, N = N) + scale_x_log10()
+```
+
+![](img/sensobolunnamed-chunk-14-1.png)<!-- -->
+
+Now, plot indicies
+
 ``` r
 plot(ind, dummy = ind.dummy) + ylim(0,1)
 ```
 
-![](img/sensobolunnamed-chunk-14-1.png)<!-- -->
+![](img/sensobolunnamed-chunk-15-1.png)<!-- -->
 
 Plot outputs versus inputs
 
@@ -298,13 +308,13 @@ Plot outputs versus inputs
 plot_scatter(N = 2000, data = mat2, Y = y, params = names(mat))
 ```
 
-![](img/sensobolunnamed-chunk-15-1.png)<!-- -->
+![](img/sensobolunnamed-chunk-16-1.png)<!-- -->
 
 ``` r
 plot_multiscatter(N = 2000, data = mat2, Y = y, params = names(mat))
 ```
 
-![](img/sensobolunnamed-chunk-16-1.png)<!-- -->
+![](img/sensobolunnamed-chunk-17-1.png)<!-- -->
 
 # Simulate in parallel
 
@@ -319,7 +329,7 @@ system.time(out <- mrgsim_ei(mod, sunev(), mat2, output = "df"))
 ```
 
     .    user  system elapsed 
-    .   6.245   0.122   6.395
+    .   6.171   0.099   6.280
 
 Or use the
 [mrgsim.parallel](https://github.com/kylebaron/mrgsim.parallel) package
@@ -332,7 +342,7 @@ system.time(out <- mc_mrgsim_ei(mod, sunev(), mat2))
 ```
 
     .    user  system elapsed 
-    .   6.814   1.189   2.458
+    .   6.642   1.117   2.386
 
 A small improvement; but the simulation didn’t take that long to begin
 with.

@@ -166,6 +166,14 @@ ind
 
 ## Visualize
 
+First, plot uncertainty in outcome
+
+```{r}
+plot_uncertainty(Y = y, N = N) + scale_x_log10()
+```
+
+Now, plot indicies
+
 ```{r}
 plot(ind, dummy = ind.dummy) + ylim(0,1)
 ```
