@@ -122,7 +122,8 @@ ggplot(res, aes(time, sens, color = p_name)) +
 For example, we can look at multiple outputs from an indirect response model
 
 ```{r}
-mod <- modlib("irm1", delta = 0.1, end = 14, rtol = 1e-10) 
+mod <- modlib("irm1", delta = 0.2, end = 48, hmax = 0.1) 
+mod <- param(mod,  IC50 = 5)
 ```
 
 ```{r}

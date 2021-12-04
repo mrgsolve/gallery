@@ -1,7 +1,7 @@
 Local sensitivity analysis using mrgsim.sa
 ================
 Kyle Baron
-2021-12-04 11:33:00
+2021-12-04 11:43:41
 
 -   [Introduction](#introduction)
 -   [Tools](#tools)
@@ -113,7 +113,7 @@ mrgsim.sa:::.lsa_fun
     . {
     .     mrgsim(mod, ...)
     . }
-    . <bytecode: 0x7fb6d17f9b58>
+    . <bytecode: 0x7fc0830328d0>
     . <environment: namespace:mrgsim.sa>
 
 You can create your own `fun`ction and then pass objects to that
@@ -165,7 +165,8 @@ For example, we can look at multiple outputs from an indirect response
 model
 
 ``` r
-mod <- modlib("irm1", delta = 0.1, end = 14, rtol = 1e-10) 
+mod <- modlib("irm1", delta = 0.2, end = 48, hmax = 0.1) 
+mod <- param(mod,  IC50 = 5)
 ```
 
 ``` r
@@ -176,7 +177,7 @@ param(mod)
     .  Model parameters (N=13):
     .  name value . name value
     .  CL   1     | KOUT 2    
-    .  IC50 2     | n    1    
+    .  IC50 5     | n    1    
     .  IMAX 1     | Q    2    
     .  KA   1     | V2   20   
     .  KA2  1     | V3   10   
