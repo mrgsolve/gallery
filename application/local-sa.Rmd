@@ -77,8 +77,8 @@ We have specified
   analysis
 - `var`: the name of the output variable; the `mrgsolve` model must generate 
   this output
-- `events`: this is passed under the `...` arguments to `lsa()`, which 
-  get passed to the simulation function
+- `events`: this is passed under the `...` argument to `lsa()`; these arguments 
+  eventually get passed to the simulation function (see below)
 
 We have not specified `fun`, which is a non-exported wrapper function for 
 `mrgsolve::mrgsim()`
@@ -123,8 +123,22 @@ For example, we can look at multiple outputs from an indirect response model
 
 ```{r}
 mod <- modlib("irm1", delta = 0.1, end = 14, rtol = 1e-10) 
+```
+
+```{r}
 param(mod)
+
 mrgsim(mod, dose()) %>% plot("CP,RESP")
+```
+
+Run the analysis 
+
+```{r}
 res <- lsa(mod, par = "CL,V2,Q,KA,IC50", var = "CP,RESP", events = dose())
+```
+
+Plot the result
+
+```{r}
 plot(res)
 ```

@@ -1,7 +1,7 @@
 Local sensitivity analysis using mrgsim.sa
 ================
 Kyle Baron
-2021-12-03 21:59:03
+2021-12-04 11:33:00
 
 -   [Introduction](#introduction)
 -   [Tools](#tools)
@@ -98,8 +98,9 @@ We have specified
     sensitivity analysis
 -   `var`: the name of the output variable; the `mrgsolve` model must
     generate this output
--   `events`: this is passed under the `...` arguments to `lsa()`, which
-    get passed to the simulation function
+-   `events`: this is passed under the `...` argument to `lsa()`; these
+    arguments eventually get passed to the simulation function (see
+    below)
 
 We have not specified `fun`, which is a non-exported wrapper function
 for `mrgsolve::mrgsim()`
@@ -112,7 +113,7 @@ mrgsim.sa:::.lsa_fun
     . {
     .     mrgsim(mod, ...)
     . }
-    . <bytecode: 0x7fa4b54c8320>
+    . <bytecode: 0x7fb6d17f9b58>
     . <environment: namespace:mrgsim.sa>
 
 You can create your own `fun`ction and then pass objects to that
@@ -165,6 +166,9 @@ model
 
 ``` r
 mod <- modlib("irm1", delta = 0.1, end = 14, rtol = 1e-10) 
+```
+
+``` r
 param(mod)
 ```
 
@@ -183,11 +187,18 @@ param(mod)
 mrgsim(mod, dose()) %>% plot("CP,RESP")
 ```
 
-![](img/local-saunnamed-chunk-10-1.png)<!-- -->
+![](img/local-saunnamed-chunk-11-1.png)<!-- -->
+
+Run the analysis
 
 ``` r
 res <- lsa(mod, par = "CL,V2,Q,KA,IC50", var = "CP,RESP", events = dose())
+```
+
+Plot the result
+
+``` r
 plot(res)
 ```
 
-![](img/local-saunnamed-chunk-10-2.png)<!-- -->
+![](img/local-saunnamed-chunk-13-1.png)<!-- -->
