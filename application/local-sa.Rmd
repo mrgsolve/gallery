@@ -17,7 +17,7 @@ knitr::opts_chunk$set(message = FALSE, warning = FALSE,
 Local sensitivity analysis consists of comparing variation in model parameters
 against variation in model out puts when the parameters are varied one at a
 time and by only very small amounts. This is in contrast to 
-[gloal sensitivity analysis](global-sensobol.md), when all parameters are 
+[global sensitivity analysis](global-sensobol.md), when all parameters are 
 varied simultaneously across the entire parameter space. 
 
 This vignette uses the mrgsolve in coordination with the 

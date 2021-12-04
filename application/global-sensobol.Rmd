@@ -172,7 +172,7 @@ First, plot uncertainty in outcome
 plot_uncertainty(Y = y, N = N) + scale_x_log10()
 ```
 
-Now, plot indicies
+Now, plot indices
 
 ```{r}
 plot(ind, dummy = ind.dummy) + ylim(0,1)

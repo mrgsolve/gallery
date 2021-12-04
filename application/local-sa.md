@@ -1,7 +1,7 @@
 Local sensitivity analysis using mrgsim.sa
 ================
 Kyle Baron
-2021-12-03 21:52:41
+2021-12-03 21:59:03
 
 -   [Introduction](#introduction)
 -   [Tools](#tools)
@@ -16,8 +16,8 @@ Kyle Baron
 Local sensitivity analysis consists of comparing variation in model
 parameters against variation in model out puts when the parameters are
 varied one at a time and by only very small amounts. This is in contrast
-to [gloal sensitivity analysis](global-sensobol.md), when all parameters
-are varied simultaneously across the entire parameter space.
+to [global sensitivity analysis](global-sensobol.md), when all
+parameters are varied simultaneously across the entire parameter space.
 
 This vignette uses the mrgsolve in coordination with the
 [mrgsim.sa](https://cran.r-project.org/package=mrgsim.sa) package
@@ -112,7 +112,7 @@ mrgsim.sa:::.lsa_fun
     . {
     .     mrgsim(mod, ...)
     . }
-    . <bytecode: 0x7f918f4d2b20>
+    . <bytecode: 0x7fa4b54c8320>
     . <environment: namespace:mrgsim.sa>
 
 You can create your own `fun`ction and then pass objects to that
