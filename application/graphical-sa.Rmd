@@ -149,3 +149,34 @@ mod %>%
   sens_plot("CP")
 ```
 
+
+# Code your own
+
+The `mrgsim.sa` package makes it convenient to simulate and plot these results. 
+However, you can also code your own simulations to look at similar types of 
+questions. I'll use the chunks below to illustrate the workflow. You'll see that
+the output isn't as refined as what you get from `mrgsim.sa`, but it can be 
+polished with additional coding. 
+
+
+To do this sort of sensitivity analysis, we use `idata_set`
+
+```{r}
+idata <- tibble(CL = seq_even(0.5, 2, 4))
+idata
+```
+
+```{r}
+out <- mrgsim_ei(mod, dose(), idata, carry_out = "CL", output = "df")
+head(out)
+```
+
+```{r}
+ggplot(out) + geom_line(aes(time, CP, color = factor(CL))) + theme_bw()
+```
+
+
+The code that `mrgsim.sa` uses is just a more  robust or sophisticated 
+implementation of the code here. 
+
+
