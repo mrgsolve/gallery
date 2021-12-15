@@ -1,24 +1,24 @@
 Simulate from bootstrap estimates
 ================
 
-  - [Scope and source code](#scope-and-source-code)
-  - [Load an example model](#load-an-example-model)
-  - [Generate an example data
+-   [Scope and source code](#scope-and-source-code)
+-   [Load an example model](#load-an-example-model)
+-   [Generate an example data
     template](#generate-an-example-data-template)
-      - [Test simulation](#test-simulation)
-  - [Example bootstrap output](#example-bootstrap-output)
-  - [Helper functions for matrices](#helper-functions-for-matrices)
-      - [Create a list of `$OMEGA` and `$SIGMA`
+    -   [Test simulation](#test-simulation)
+-   [Example bootstrap output](#example-bootstrap-output)
+-   [Helper functions for matrices](#helper-functions-for-matrices)
+    -   [Create a list of `$OMEGA` and `$SIGMA`
         matrices](#create-a-list-of-omega-and-sigma-matrices)
-  - [Simulate](#simulate)
-  - [Simulate with only uncertainty in the
+-   [Simulate](#simulate)
+-   [Simulate with only uncertainty in the
     `THETA`s](#simulate-with-only-uncertainty-in-the-thetas)
-  - [Session Info](#session-info)
+-   [Session Info](#session-info)
 
 # Scope and source code
 
 This document demonstrates how to use an mrgsolve model and bootstrap
-parameter estiamtes to create replicate simulations that incorporate
+parameter estimates to create replicate simulations that incorporate
 uncertainty in the fixed effect (e.g. `THETA`) and random effect (e.g.
 `OMEGA` and `SIGMA`) parameters.
 
@@ -90,12 +90,12 @@ data <- ev_rep(ev(amt = 100, ii = 24, addl = 2), ID = 1:5)
 data
 ```
 
-    .   time cmt amt evid ii addl ID
-    . 1    0   1 100    1 24    2  1
-    . 2    0   1 100    1 24    2  2
-    . 3    0   1 100    1 24    2  3
-    . 4    0   1 100    1 24    2  4
-    . 5    0   1 100    1 24    2  5
+    .   ID time amt ii addl cmt evid
+    . 1  1    0 100 24    2   1    1
+    . 2  2    0 100 24    2   1    1
+    . 3  3    0 100 24    2   1    1
+    . 4  4    0 100 24    2   1    1
+    . 5  5    0 100 24    2   1    1
 
 ## Test simulation
 
@@ -126,20 +126,20 @@ data(exBoot)
 head(exBoot)
 ```
 
-    .   run  THETA1 THETA2  THETA3 OMEGA11   OMEGA21 OMEGA22 OMEGA31  OMEGA32
-    . 1   1 -0.7634  2.280  0.8472 0.12860  0.046130  0.2874 0.13820 -0.02164
-    . 2   2 -0.4816  2.076  0.5355 0.12000  0.051000  0.2409 0.06754 -0.07759
-    . 3   3 -0.5865  2.334 -0.4597 0.11460  0.097150  0.2130 0.16650  0.18100
-    . 4   4 -0.6881  1.824  0.7736 0.14990  0.000003  0.2738 0.24700 -0.05466
-    . 5   5  0.2909  1.519 -1.2440 0.07308  0.003842  0.2989 0.06475  0.05078
-    . 6   6  0.1135  2.144 -1.0040 0.13390 -0.019270  0.1640 0.10740 -0.01170
-    .   OMEGA33  SIGMA11 SIGMA21 SIGMA22
-    . 1  0.3933 0.002579       0  1.0300
-    . 2  0.3342 0.002228       0  1.0050
-    . 3  0.4699 0.002418       0  1.0890
-    . 4  0.5536 0.002177       0  0.8684
-    . 5  0.2500 0.001606       0  0.8996
-    . 6  0.3412 0.002134       0  0.9744
+    .   run  THETA1 THETA2  THETA3 OMEGA11   OMEGA21 OMEGA22 OMEGA31  OMEGA32 OMEGA33
+    . 1   1 -0.7634  2.280  0.8472 0.12860  0.046130  0.2874 0.13820 -0.02164  0.3933
+    . 2   2 -0.4816  2.076  0.5355 0.12000  0.051000  0.2409 0.06754 -0.07759  0.3342
+    . 3   3 -0.5865  2.334 -0.4597 0.11460  0.097150  0.2130 0.16650  0.18100  0.4699
+    . 4   4 -0.6881  1.824  0.7736 0.14990  0.000003  0.2738 0.24700 -0.05466  0.5536
+    . 5   5  0.2909  1.519 -1.2440 0.07308  0.003842  0.2989 0.06475  0.05078  0.2500
+    . 6   6  0.1135  2.144 -1.0040 0.13390 -0.019270  0.1640 0.10740 -0.01170  0.3412
+    .    SIGMA11 SIGMA21 SIGMA22
+    . 1 0.002579       0  1.0300
+    . 2 0.002228       0  1.0050
+    . 3 0.002418       0  1.0890
+    . 4 0.002177       0  0.8684
+    . 5 0.001606       0  0.8996
+    . 6 0.002134       0  0.9744
 
 **NOTE** mrgsolve has some functions to help you deal with output that
 is in this `NONMEM` type format; for `OMEGA`, it is expecting `OMEGA11`,
@@ -231,8 +231,7 @@ out <- lapply(1:10, function(i) {
 }) %>% bind_rows
 ```
 
-In the output, we have 10 replicates, each with five
-individuals
+In the output, we have 10 replicates, each with five individuals
 
 ``` r
 ggplot(out, aes(time,DV,group=ID)) + geom_line() + theme_bw() + facet_wrap(~rep)
@@ -263,8 +262,7 @@ out <- lapply(1:10, function(i) {
 ```
 
 Now, we have one “individual” simulated from 10 different bootstrap
-parameter
-    sets
+parameter sets
 
 ``` r
 ggplot(out, aes(time,DV,group=rep)) + geom_line() + theme_bw() 
@@ -278,70 +276,79 @@ ggplot(out, aes(time,DV,group=rep)) + geom_line() + theme_bw()
 devtools::session_info()
 ```
 
-    . ─ Session info ──────────────────────────────────────────────────────────
+    . ─ Session info ───────────────────────────────────────────────────────────────
     .  setting  value                       
-    .  version  R version 3.6.1 (2019-07-05)
-    .  os       macOS Sierra 10.12.6        
-    .  system   x86_64, darwin15.6.0        
+    .  version  R version 4.1.0 (2021-05-18)
+    .  os       macOS Big Sur 10.16         
+    .  system   x86_64, darwin17.0          
     .  ui       X11                         
     .  language (EN)                        
     .  collate  en_US.UTF-8                 
     .  ctype    en_US.UTF-8                 
     .  tz       America/Chicago             
-    .  date     2019-08-29                  
+    .  date     2021-12-15                  
     . 
-    . ─ Packages ──────────────────────────────────────────────────────────────
-    .  package       * version     date       lib source        
-    .  assertthat      0.2.1       2019-03-21 [1] CRAN (R 3.6.0)
-    .  backports       1.1.4       2019-04-10 [1] CRAN (R 3.6.0)
-    .  callr           3.3.1       2019-07-18 [1] CRAN (R 3.6.0)
-    .  cli             1.1.0       2019-03-19 [1] CRAN (R 3.6.0)
-    .  colorspace      1.4-1       2019-03-18 [1] CRAN (R 3.6.0)
-    .  crayon          1.3.4       2017-09-16 [1] CRAN (R 3.6.0)
-    .  desc            1.2.0       2018-05-01 [1] CRAN (R 3.6.0)
-    .  devtools        2.1.0       2019-07-06 [1] CRAN (R 3.6.0)
-    .  digest          0.6.20      2019-07-04 [1] CRAN (R 3.6.0)
-    .  dplyr         * 0.8.3       2019-07-04 [1] CRAN (R 3.6.0)
-    .  evaluate        0.14        2019-05-28 [1] CRAN (R 3.6.0)
-    .  fs              1.3.1       2019-05-06 [1] CRAN (R 3.6.0)
-    .  ggplot2       * 3.2.1       2019-08-10 [1] CRAN (R 3.6.0)
-    .  glue            1.3.1       2019-03-12 [1] CRAN (R 3.6.0)
-    .  gtable          0.3.0       2019-03-25 [1] CRAN (R 3.6.0)
-    .  htmltools       0.3.6       2017-04-28 [1] CRAN (R 3.6.0)
-    .  knitr           1.24        2019-08-08 [1] CRAN (R 3.6.0)
-    .  labeling        0.3         2014-08-23 [1] CRAN (R 3.6.0)
-    .  lattice         0.20-38     2018-11-04 [1] CRAN (R 3.6.0)
-    .  lazyeval        0.2.2       2019-03-15 [1] CRAN (R 3.6.0)
-    .  magrittr        1.5         2014-11-22 [1] CRAN (R 3.6.0)
-    .  memoise         1.1.0       2017-04-21 [1] CRAN (R 3.6.0)
-    .  mrgsolve      * 0.9.2       2019-07-13 [1] CRAN (R 3.6.0)
-    .  munsell         0.5.0       2018-06-12 [1] CRAN (R 3.6.0)
-    .  pillar          1.4.2       2019-06-29 [1] CRAN (R 3.6.0)
-    .  pkgbuild        1.0.5       2019-08-26 [1] CRAN (R 3.6.0)
-    .  pkgconfig       2.0.2       2018-08-16 [1] CRAN (R 3.6.0)
-    .  pkgload         1.0.2       2018-10-29 [1] CRAN (R 3.6.0)
-    .  prettyunits     1.0.2       2015-07-13 [1] CRAN (R 3.6.0)
-    .  processx        3.4.1       2019-07-18 [1] CRAN (R 3.6.0)
-    .  ps              1.3.0       2018-12-21 [1] CRAN (R 3.6.0)
-    .  purrr           0.3.2       2019-03-15 [1] CRAN (R 3.6.0)
-    .  R6              2.4.0       2019-02-14 [1] CRAN (R 3.6.0)
-    .  Rcpp            1.0.2       2019-07-25 [1] CRAN (R 3.6.0)
-    .  RcppArmadillo   0.9.600.4.0 2019-07-15 [1] CRAN (R 3.6.0)
-    .  remotes         2.1.0       2019-06-24 [1] CRAN (R 3.6.0)
-    .  rlang           0.4.0       2019-06-25 [1] CRAN (R 3.6.0)
-    .  rmarkdown       1.15        2019-08-21 [1] CRAN (R 3.6.0)
-    .  rprojroot       1.3-2       2018-01-03 [1] CRAN (R 3.6.0)
-    .  scales          1.0.0       2018-08-09 [1] CRAN (R 3.6.0)
-    .  sessioninfo     1.1.1       2018-11-05 [1] CRAN (R 3.6.0)
-    .  stringi         1.4.3       2019-03-12 [1] CRAN (R 3.6.0)
-    .  stringr         1.4.0       2019-02-10 [1] CRAN (R 3.6.0)
-    .  testthat        2.2.1       2019-07-25 [1] CRAN (R 3.6.0)
-    .  tibble          2.1.3       2019-06-06 [1] CRAN (R 3.6.0)
-    .  tidyselect      0.2.5       2018-10-11 [1] CRAN (R 3.6.0)
-    .  usethis         1.5.1       2019-07-04 [1] CRAN (R 3.6.0)
-    .  withr           2.1.2       2018-03-15 [1] CRAN (R 3.6.0)
-    .  xfun            0.9         2019-08-21 [1] CRAN (R 3.6.0)
-    .  yaml            2.2.0       2018-07-25 [1] CRAN (R 3.6.0)
+    . ─ Packages ───────────────────────────────────────────────────────────────────
+    .  package     * version     date       lib source        
+    .  assertthat    0.2.1       2019-03-21 [1] CRAN (R 4.1.0)
+    .  cachem        1.0.6       2021-08-19 [1] CRAN (R 4.1.0)
+    .  callr         3.7.0       2021-04-20 [1] CRAN (R 4.1.0)
+    .  cli           3.0.1       2021-07-17 [1] CRAN (R 4.1.0)
+    .  colorspace    2.0-2       2021-06-24 [1] CRAN (R 4.1.0)
+    .  crayon        1.4.1       2021-02-08 [1] CRAN (R 4.1.0)
+    .  DBI           1.1.1       2021-01-15 [1] CRAN (R 4.1.0)
+    .  desc          1.4.0       2021-09-28 [1] CRAN (R 4.1.0)
+    .  devtools      2.4.2       2021-06-07 [1] CRAN (R 4.1.0)
+    .  digest        0.6.28      2021-09-23 [1] CRAN (R 4.1.0)
+    .  dplyr       * 1.0.7       2021-06-18 [1] CRAN (R 4.1.0)
+    .  ellipsis      0.3.2       2021-04-29 [1] CRAN (R 4.1.0)
+    .  evaluate      0.14        2019-05-28 [1] CRAN (R 4.1.0)
+    .  fansi         0.5.0       2021-05-25 [1] CRAN (R 4.1.0)
+    .  farver        2.1.0       2021-02-28 [1] CRAN (R 4.1.0)
+    .  fastmap       1.1.0       2021-01-25 [1] CRAN (R 4.1.0)
+    .  fs            1.5.0       2020-07-31 [1] CRAN (R 4.1.0)
+    .  generics      0.1.0       2020-10-31 [1] CRAN (R 4.1.0)
+    .  ggplot2     * 3.3.5       2021-06-25 [1] CRAN (R 4.1.0)
+    .  glue          1.4.2       2020-08-27 [1] CRAN (R 4.1.0)
+    .  gtable        0.3.0       2019-03-25 [1] CRAN (R 4.1.0)
+    .  highr         0.9         2021-04-16 [1] CRAN (R 4.1.0)
+    .  htmltools     0.5.2       2021-08-25 [1] CRAN (R 4.1.0)
+    .  knitr         1.36        2021-09-29 [1] CRAN (R 4.1.0)
+    .  labeling      0.4.2       2020-10-20 [1] CRAN (R 4.1.0)
+    .  lattice       0.20-45     2021-09-22 [1] CRAN (R 4.1.0)
+    .  lifecycle     1.0.1       2021-09-24 [1] CRAN (R 4.1.0)
+    .  magrittr      2.0.1       2020-11-17 [1] CRAN (R 4.1.0)
+    .  memoise       2.0.0       2021-01-26 [1] CRAN (R 4.1.0)
+    .  mrgsolve    * 0.11.2.9000 2021-12-15 [1] local         
+    .  munsell       0.5.0       2018-06-12 [1] CRAN (R 4.1.0)
+    .  pillar        1.6.3       2021-09-26 [1] CRAN (R 4.1.0)
+    .  pkgbuild      1.2.0       2020-12-15 [1] CRAN (R 4.1.0)
+    .  pkgconfig     2.0.3       2019-09-22 [1] CRAN (R 4.1.0)
+    .  pkgload       1.2.3       2021-10-13 [1] CRAN (R 4.1.0)
+    .  prettyunits   1.1.1       2020-01-24 [1] CRAN (R 4.1.0)
+    .  processx      3.5.2       2021-04-30 [1] CRAN (R 4.1.0)
+    .  ps            1.6.0       2021-02-28 [1] CRAN (R 4.1.0)
+    .  purrr         0.3.4       2020-04-17 [1] CRAN (R 4.1.0)
+    .  R6            2.5.1       2021-08-19 [1] CRAN (R 4.1.0)
+    .  Rcpp          1.0.7       2021-07-07 [1] CRAN (R 4.1.0)
+    .  remotes       2.4.1       2021-09-29 [1] CRAN (R 4.1.0)
+    .  rlang         0.4.11      2021-04-30 [1] CRAN (R 4.1.0)
+    .  rmarkdown     2.11        2021-09-14 [1] CRAN (R 4.1.0)
+    .  rprojroot     2.0.2       2020-11-15 [1] CRAN (R 4.1.0)
+    .  rstudioapi    0.13        2020-11-12 [1] CRAN (R 4.1.0)
+    .  scales        1.1.1       2020-05-11 [1] CRAN (R 4.1.0)
+    .  sessioninfo   1.1.1       2018-11-05 [1] CRAN (R 4.1.0)
+    .  stringi       1.7.5       2021-10-04 [1] CRAN (R 4.1.0)
+    .  stringr       1.4.0       2019-02-10 [1] CRAN (R 4.1.0)
+    .  testthat      3.1.0       2021-10-04 [1] CRAN (R 4.1.0)
+    .  tibble        3.1.5       2021-09-30 [1] CRAN (R 4.1.0)
+    .  tidyselect    1.1.1       2021-04-30 [1] CRAN (R 4.1.0)
+    .  usethis       2.1.0       2021-10-16 [1] CRAN (R 4.1.1)
+    .  utf8          1.2.2       2021-07-24 [1] CRAN (R 4.1.0)
+    .  vctrs         0.3.8       2021-04-29 [1] CRAN (R 4.1.0)
+    .  withr         2.4.2       2021-04-18 [1] CRAN (R 4.1.0)
+    .  xfun          0.26        2021-09-14 [1] CRAN (R 4.1.0)
+    .  yaml          2.2.1       2020-02-01 [1] CRAN (R 4.1.0)
     . 
     . [1] /Users/kyleb/Rlibs
-    . [2] /Library/Frameworks/R.framework/Versions/3.6/Resources/library
+    . [2] /Library/Frameworks/R.framework/Versions/4.1/Resources/library

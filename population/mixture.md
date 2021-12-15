@@ -43,8 +43,10 @@ mod <- mcode_cache("A", code) %>% update(end=72, delta=0.1)
 idata <- data_frame(POP=c(1,2))
 ```
 
-    . Warning: `data_frame()` is deprecated, use `tibble()`.
-    . This warning is displayed once per session.
+    . Warning: `data_frame()` was deprecated in tibble 1.1.0.
+    . Please use `tibble()` instead.
+    . This warning is displayed once every 8 hours.
+    . Call `lifecycle::last_lifecycle_warnings()` to see where this warning was generated.
 
 ``` r
 e <- ev(amt=100)
@@ -59,7 +61,7 @@ blue was for `POP==1`.
 
 ## Modify the model to simulate a population mixture
 
-In the get-started exmaple model, we hard-coded `POP` as a parameter and
+In the get-started example model, we hard-coded `POP` as a parameter and
 we had to supply the value of `POP` in the input data set (in this case,
 it was via `idata`).
 
@@ -178,7 +180,7 @@ out %>%
   summarise(N=n(), Median = median(CLi))
 ```
 
-    . # A tibble: 2 x 3
+    . # A tibble: 2 × 3
     .     POP     N Median
     .   <dbl> <int>  <dbl>
     . 1     1  8023  1.00 
@@ -209,10 +211,10 @@ $CAPTURE POP mixv
 
 Here’s what we did
 
-  - Code mixture probabilities in `$PARAM`
-  - Draw a variate (`mixv`) from `uniform(0,1)`
-  - Determine `POP` based on the probabilites and `mixv`
-  - Remember: you must use `$PLUGIN` for this to work
+-   Code mixture probabilities in `$PARAM`
+-   Draw a variate (`mixv`) from `uniform(0,1)`
+-   Determine `POP` based on the probabilites and `mixv`
+-   Remember: you must use `$PLUGIN` for this to work
 
 Now, let’s compile and test it out
 
@@ -238,10 +240,10 @@ head(out)
 And check that the population is properly configured
 
 ``` r
-out %>% as.tbl %>% count(POP) %>% mutate(p = n/nrow(out))
+out %>% as_tibble() %>% count(POP) %>% mutate(p = n/nrow(out))
 ```
 
-    . # A tibble: 3 x 3
+    . # A tibble: 3 × 3
     .     POP     n      p
     .   <dbl> <int>  <dbl>
     . 1     1  3225 0.322 

@@ -20,6 +20,7 @@
   - [Sobol sensitivity analysis - with sensobol package](application/global-sensobol.md)
   - [Sobol sensitivity analysis - with sensitivity package](application/sobol.md)
   - [Local sensitivity analysis - with mrgsim.sa](application/local-sa.md)
+  - [Graphical sensitivity analysis - with mrgsim.sa](application/graphical-sa.md)
   - [Parallel simulation](application/parallel.md)
   - [Estimate parameters for two endpoints](application/two_endpoints.md)
 - [Adaptive dosing examples](adaptive/README.md)

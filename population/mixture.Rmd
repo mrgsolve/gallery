@@ -59,7 +59,7 @@ blue was for `POP==1`.
 
 
 ## Modify the model to simulate a population mixture
-In the get-started exmaple model, we hard-coded `POP` as a parameter and 
+In the get-started example model, we hard-coded `POP` as a parameter and 
 we had to supply the value of `POP` in the input data set (in this case,
 it was via `idata`).
 
@@ -198,7 +198,7 @@ head(out)
 And check that the population is properly configured
 
 ```{r}
-out %>% as.tbl %>% count(POP) %>% mutate(p = n/nrow(out))
+out %>% as_tibble() %>% count(POP) %>% mutate(p = n/nrow(out))
 ```
 
 And we get back the 33% in population 1, 60% in population 2, and the 

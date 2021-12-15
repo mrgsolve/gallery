@@ -15,7 +15,7 @@ knitr::opts_chunk$set(comment = '.', fig.path = "img/bootstrap-")
 
 
 This document demonstrates how to use an mrgsolve model and bootstrap 
-parameter estiamtes to create replicate simulations that incorporate
+parameter estimates to create replicate simulations that incorporate
 uncertainty in the fixed effect (e.g. `THETA`) and random effect (e.g.
 `OMEGA` and `SIGMA`) parameters.
 
