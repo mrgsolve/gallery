@@ -1,0 +1,234 @@
+---
+title: Sobol sensitivity analysis using sensobol
+author: "Kyle Baron"
+date: "`r Sys.time()`"
+output:
+  github_document:
+    toc: TRUE
+---
+
+```{r, echo = FALSE}
+knitr::opts_chunk$set(message = FALSE, warning = FALSE, 
+                      comment = '.', fig.path = "img/sensobol")
+```
+
+
+# Reference / About
+Zhang XY, Trame MN, Lesko LJ, Schmidt S. __Sobol Sensitivity Analysis: A Tool to
+Guide the Development and Evaluation of Systems Pharmacology Models__. CPT
+Pharmacometrics Syst Pharmacol. 2015 Feb;4(2):69-79. doi: 10.1002/psp4.6. PubMed
+PMID: [27548289](https://www.ncbi.nlm.nih.gov/pubmed/27548289)
+
+This example replicates an analysis presented in the Zhang et al. paper, 
+but here using mrgsolve and other tools available for R.
+
+__NOTE__: This example uses the `sensobol` package to run the analysis. This is 
+my preferred package for global sensitivity analysis. You can 
+see the same analysis run with `sensitivity` here: [sobol.md](sobol.md). 
+
+# Introduction 
+
+This vignette shows you how to to Sobol sensitivity analysis, a form of global
+sensitivity analysis. In this type of analysis, we look at the relationship 
+between variability in input parameters and variability in model outputs when 
+model parameters are all varied together across the plausible parameter space. 
+This is in contrast to local sensitivity analysis, where parameters are 
+perturbed one at a time by small amounts. 
+
+To do Sobol sensitivity analysis, we will need the following
+
+1. A model with some parameters to manipulate 
+1. A (large) set of random parameter values covering a certain section of the 
+   plausible (or reasonable) parameter space
+1. An intervention of interest (e.g. a dose)
+1. A model output, summarized as a single value, that depends on the 
+   intervention and the value of the manipulated parameters (e.g. AUC for a 
+   PK model)
+1. Calculate sensitivity indices, which summarize the relationships between 
+   input parameters and model outputs
+1. Visualization or presentation of the indices
+
+
+# Tools
+```{r setup}
+library(mrgsolve)
+library(tidyverse)
+library(PKPDmisc)
+library(data.table)
+library(sensobol)
+```
+
+# The sunitinib PK model
+```{r}
+mod <- mread("sunit", "model") %>% 
+  update(end = 24, delta = 0.5, outvars = "CP") %>% 
+  zero_re()
+```
+
+```{r}
+see(mod)
+```
+
+## Sunitinib dosing 
+
+We are just looking at a single dose for now.
+
+```{r}
+sunev <- function(amt = 50,...) ev(amt = amt, ...)
+```
+
+# Generate samples
+
+__Number__: we will generate this many parameter sets
+
+```{r}
+N <- 2 ^ 15
+```
+
+__Generate__
+
+Generate the parameter sets. 
+
+```{r}
+mat <- sobol_matrices(N = N, params = c("TVCL", "TVVC", "TVKA", "TVQ", "TVVP"))
+head(mat)
+```
+
+Take a look at the package vignette for `sensobol` for better details. Briefly, 
+this is a matrix with random variates for each parameter in the sensitivity
+analysis. The samples are uniform between zero and one. You will have to
+transform these variates to parameter values as we'll see in the next section. 
+
+__Transform and groom__
+
+For this example, we will assume that all parameters have uniform distribution
+between 1/5 and 5 times the current value of the parameter
+
+```{r}
+params <- unlist(as.list(param(mod))[c("TVCL", "TVVC", "TVKA", "TVQ", "TVVP")])
+umin <- params / 5
+umax <- params * 5
+umin
+umax
+```
+
+After setting the minimum and maximum for each parameter, get the value of the 
+parameter by looking at the quantiles of the uniform distribution (`qunif()`)
+
+```{r}
+mat <- as_tibble(mat)
+mat2 <- imodify(mat, ~ qunif(.x, umin[[.y]], umax[[.y]]))
+mat2 <- mutate(mat2, ID = row_number())
+head(mat2)
+```
+
+
+If we wanted each parameter to have log-normal distribution with 30% coefficient
+of variation, we pass our uniform (0,1) variates into `qlnorm()` instead
+
+```{r}
+mat3 <- imodify(mat, ~ qlnorm(.x, log(params[[.y]]), sqrt(0.09)))
+summary(mat3)
+params
+```
+
+# Run the analysis
+
+We will use the uniform parameters that we generated above.
+
+## Simulation
+
+Now, we have a set of parameters for the model and we can simulate PK over
+24 hours using `mrgsim_ei()`, passing in an event object and the idata set
+
+```{r}
+out <- mrgsim_ei(mod, sunev(), mat2, output = "df")
+out <- as.data.table(out)
+```
+
+## Calculate AUC
+
+```{r}
+y <- out[, list(auc = auc_partial(time,CP)), by = "ID"][["auc"]]
+```
+
+## Indices
+
+```{r}
+ind <- sobol_indices(Y = y, N = N, params = names(params), boot = TRUE, R = 1000, first = "jansen")
+ind.dummy <- sobol_dummy(Y = y, N = N, params = names(params), boot = TRUE, R = 1000)
+```
+
+```{r}
+ind
+```
+
+
+## Visualize
+
+First, plot uncertainty in outcome
+
+```{r}
+plot_uncertainty(Y = y, N = N) + scale_x_log10()
+```
+
+Now, plot indicies
+
+```{r}
+plot(ind, dummy = ind.dummy) + ylim(0,1)
+```
+
+
+Plot outputs versus inputs
+
+```{r}
+plot_scatter(N = 2000, data = mat2, Y = y, params = names(mat))
+```
+
+```{r, fig.height = 8}
+plot_multiscatter(N = 2000, data = mat2, Y = y, params = names(mat))
+```
+
+
+# Simulate in parallel
+
+Usually running global sensitivity analyses are computationally expensive. 
+The more parameters you want to include, the larger number of samples 
+you need to process and parallelization can come in handy.
+
+We can benchmark the simulation as-is
+```{r}
+system.time(out <- mrgsim_ei(mod, sunev(), mat2, output = "df"))
+```
+
+Or use the [mrgsim.parallel](https://github.com/kylebaron/mrgsim.parallel) 
+package to run in parallel:
+
+```{r}
+library(mrgsim.parallel)
+library(furrr)
+options(future.rng.onMisuse = "ignore")
+
+system.time(out <- mrgsim_ei(mod, sunev(), mat2, output = "df"))
+
+options(future.fork.enable = TRUE)
+future::plan(future::multisession, workers = 4L)
+
+sp <- chunk_by_row(mat2, nchunk = 4)
+sim_this_chunk <- function(chunk, mod, e) {
+   mrgsim_ei(mod, e, chunk, output = "df")
+}
+
+system.time(out <- future_map(sp, sim_this_chunk, mod = mod, e = sunev()))
+future::plan(future::sequential)
+
+system.time(out <- map(sp, sim_this_chunk, mod = mod, e = sunev()))
+```
+
+```{r}
+future::plan(future::multicore, workers = 4L)
+system.time(out <- future_map(sp, sim_this_chunk, mod = mod, e = sunev()))
+```
+
+A small improvement; but the simulation didn't take that long to begin with.
+
