@@ -1,7 +1,7 @@
 Local sensitivity analysis using mrgsim.sa
 ================
 Kyle Baron
-2021-12-04 11:43:41
+2021-12-15 21:56:04
 
 -   [Introduction](#introduction)
 -   [Tools](#tools)
@@ -113,7 +113,7 @@ mrgsim.sa:::.lsa_fun
     . {
     .     mrgsim(mod, ...)
     . }
-    . <bytecode: 0x7fc0830328d0>
+    . <bytecode: 0x7fbf3be10558>
     . <environment: namespace:mrgsim.sa>
 
 You can create your own `fun`ction and then pass objects to that
