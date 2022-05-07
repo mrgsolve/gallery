@@ -1,0 +1,80 @@
+
+[ theta ] 0.0058 0.1
+
+[ omega ] 0.09
+
+[ set ] rtol = 1e-9, atol = 1e-9
+
+[ plugin ]  autodec,  Rcpp, mrgx
+
+[ cmt ] A1
+
+[ global ] 
+std::vector<double> COM(9);
+std::vector<double> out;
+
+[ pk ] 
+BASE = THETA(1) * exp(ETA(1));
+
+if(NEWIND==0) {
+  COM[6] = 1;
+  out.clear();
+}
+
+if(NEWIND==1) {
+  ICOUNT = COM[6] + 1;
+  COM[6] = ICOUNT;
+}
+
+if(NEWIND != 2) {
+  RR = R::runif(0,1);
+  COM[4] = 288; 
+  COM[3] = -1; 
+  COM[2] = RR; 
+  COM[1] = -1;
+  COM[7] = 0; 
+  COM[8] = 0;
+}
+
+id = ID;
+
+[ des ] 
+dxdt_A1 = BASE;
+
+SUR = exp(-(A1-COM[8]));
+XR = 0;
+
+if(COM[2] > SUR) {
+  COM[1] = SOLVERTIME;
+  COM[3] = SUR; 
+  COM[8] = A1;
+  COM[7] = COM[7] + 1;
+  RR = R::runif(0,1);
+  TMP = COM[2];
+  COM[2] = RR;
+  MYDV = 1;
+  if(SOLVERTIME < COM[4]) {
+    out.push_back(id); 
+    out.push_back(MYDV); 
+    out.push_back(COM[1]);
+    out.push_back(TMP);
+    out.push_back(BASE);
+  }
+}
+
+[ error ] 
+
+if(TIME <= 288) {
+  mt = self.mtime(TIME + THETA(2));
+}
+
+if(self.rown +1 == self.nrow) {
+  std::vector<std::string> names; 
+  names.push_back("ID");
+  names.push_back("DV"); 
+  names.push_back("TIME"); 
+  names.push_back("R"); 
+  names.push_back("BASE");
+  mrgx::get_envir(self).assign("data", out);
+  mrgx::get_envir(self).assign("names", names);
+}

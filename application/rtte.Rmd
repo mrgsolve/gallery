@@ -1,0 +1,96 @@
+---
+title: Simulating large time-to-event trials with mrgsolve
+output: github_document
+---
+
+# Introduction
+
+This vignette shows implementation of MTIME approach to
+simulating large time-to-event trial in NONMEM. We show the 
+Repeated Time-to-Event model. 
+
+## Reference
+
+__Simulating large time-to-event trials in NONMEM__
+
+Joakim Nyberg, Kristin E. Karlsson, Siv Jönsson, Ulrika S.H. Simonsson, Mats O. Karlsson and Andrew C. Hooker
+
+
+PAGE 23 (2014) Abstr 3166 
+https://www.page-meeting.org/?abstract=3166
+
+
+```{r, message = FALSE, warning = FALSE}
+library(tidyverse)
+theme_set(theme_bw())
+library(mrgsolve)
+```
+
+# Input data
+
+```{r}
+#| comment: '.'
+data <- data.frame(
+  TIME = c(0, 288), 
+  CMT = 0, 
+  AMT = 0, 
+  EVID = 0
+)
+ids <- seq(1, 300)
+data <- crossing(ID = ids, data)
+
+head(data)
+```
+
+# RTTE Model
+```{r}
+#| comment: '.'
+mod <- mread("rtte.txt", end = -1)
+
+set.seed(98765)
+out <- mrgsim(mod, data)
+
+head(out)
+```
+
+# Check event output
+```{r}
+#| comment: '.'
+
+res <- as.list(mod@envir)
+x <- matrix(res$data, ncol = length(res$names), byrow=TRUE)
+x <- as.data.frame(x)
+names(x) <- res$names
+
+head(x)
+```
+
+
+## Calculate analytic Event Time
+
+```{r}
+x <- mutate(
+  x, 
+  AT = -log(R)/BASE, 
+  DIFF = TIME - AT
+)
+
+head(x)
+```
+
+## Difference between MTIME and Analytic Time
+
+Take time to first event
+
+```{r}
+xx <- distinct(x, ID, .keep_all = TRUE)
+ggplot(xx, aes(x = DIFF)) + 
+  geom_histogram(color = "white")
+```
+
+# Model code
+
+```{r, eval = FALSE, code = mod@code}
+
+```
+
