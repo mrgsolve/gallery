@@ -1,0 +1,125 @@
+
+[ theta ] 0.01735 0.8 0.1
+
+[ omega ] 0
+
+[ set ] rtol = 1e-9, atol = 1e-9
+
+[ plugin ]  autodec,  Rcpp, mrgx
+
+[ cmt ] A1
+
+[ global ] 
+std::vector<double> COM(8);
+std::vector<double> out;
+
+[ pk ] 
+LAM  = THETA(1) * exp(ETA(1));
+SHP = THETA(2);
+
+if(NEWIND==0) {
+  COM[6] = 1;
+  COM[4] = 100;
+}
+
+if(NEWIND==1) {
+  ICOUNT = COM[6] + 1;
+  COM[6] = ICOUNT;
+}
+
+if(NEWIND != 2) {
+  RR = R::runif(0,1);
+  COM[3] = -1; 
+  COM[2] = RR; 
+  COM[1] = -1;
+  COM[7] = 0; 
+}
+
+id = ID;
+
+[ des ] 
+
+DEL = 1e-7;
+
+dxdt_A1 = LAM*SHP*pow(LAM*SOLVERTIME+DEL,SHP-1);
+
+SUR = exp(-A1);
+
+if(COM[2] > SUR && COM[1]==-1) {
+  COM[1] = SOLVERTIME;
+  COM[3] = SUR; 
+}
+
+[ error ] 
+CHZ = A1;
+SURX = exp(-CHZ);
+
+if(COM[1] > COM[4]) {
+  if(COM[2] > SURX) {
+    COM[1] = COM[4];
+  } else {
+    COM[1] = -1;  
+  }
+}
+
+EVT = COM[1];
+RNM = COM[2];
+
+ENDTIME = COM[4];
+TT = COM[5];
+
+DV = 0; 
+TMDV = 0;
+
+if(EVID > 0) TMDV = 1;
+
+ICOUNT = COM[6];
+
+if(NEWIND ==0) out.clear();
+
+if(TIME <= 100) {
+  mt = self.mtime(TIME + THETA(3));
+}
+
+if(EVT != -1) {
+  DV = 1;
+  RTTE = 1; 
+  TMDV = 0;
+  out.push_back(id); 
+  out.push_back(DV); 
+  out.push_back(EVT);
+  out.push_back(RTTE);
+  out.push_back(COM[3]);
+  out.push_back(ICOUNT);
+  out.push_back(COM[2]);
+  COM[1] = -1;
+  COM[2] = 0;
+  COM[3] = -1; 
+  COM[7] = COM[7] + 1;
+  } else if (TIME==100 && COM[7]==0) {
+    DV = 0; 
+    TMDV = 0; 
+    RTTE = 1;
+    TMP = COM[4];
+    out.push_back(id); 
+    out.push_back(DV); 
+    out.push_back(TMP);
+    out.push_back(RTTE);
+    out.push_back(SURX);
+    out.push_back(ICOUNT);
+    out.push_back(COM[2]);
+  }
+
+
+if(self.rown +1 == self.nrow) {
+  std::vector<std::string> names; 
+  names.push_back("ID");
+  names.push_back("DV"); 
+  names.push_back("EVT"); 
+  names.push_back("RTTE"); 
+  names.push_back("SURX");
+  names.push_back("ICOUNT");
+  names.push_back("RAND");
+  mrgx::get_envir(self).assign("data", out);
+  mrgx::get_envir(self).assign("names", names);
+}

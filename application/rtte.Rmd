@@ -6,8 +6,8 @@ output: github_document
 # Introduction
 
 This vignette shows implementation of MTIME approach to
-simulating large time-to-event trial in NONMEM. We show the 
-Repeated Time-to-Event model. 
+simulating large time-to-event trial in NONMEM. We show
+both the Repeated Time-to-Event model. 
 
 ## Reference
 
@@ -26,7 +26,82 @@ theme_set(theme_bw())
 library(mrgsolve)
 ```
 
-# Input data
+# TTE Model
+
+```{r}
+#| comment: '.'
+data <- data.frame(
+  TIME = c(0, 100), 
+  CMT = 0, 
+  AMT = 0, 
+  EVID = 0
+)
+ids <- seq(1, 1000)
+data <- crossing(ID = ids, data)
+
+head(data)
+```
+
+## Read mtime-tte.txt model file
+```{r}
+#| comment: '.'
+mod <- mread("mtime-tte.txt", end = -1)
+
+set.seed(98765)
+out <- mrgsim(mod, data)
+
+head(out)
+```
+
+## Check event output
+```{r}
+#| comment: '.'
+
+res <- as.list(mod@envir)
+x <- matrix(res$data, ncol = length(res$names), byrow=TRUE)
+x <- as.data.frame(x)
+names(x) <- res$names
+
+head(x)
+```
+
+
+### Calculate analytic Event Time
+
+```{r}
+x <- mutate(
+  x, 
+  AT = (-log(RAND))^(1/mod$THETA2)/mod$THETA1, 
+  DIFF = EVT - AT
+)
+
+head(x)
+```
+
+### Difference between MTIME and Analytic Time
+
+Take time to first event
+
+```{r}
+xx <- distinct(x, ID, .keep_all = TRUE)
+
+xx <- filter(xx, DV==1)
+
+ggplot(xx, aes(x = DIFF)) + 
+  geom_histogram(color = "white")
+```
+
+## Model code
+
+```{r, eval = FALSE, code = mod@code}
+
+```
+
+
+# RTTE Model
+
+
+## Input data
 
 ```{r}
 #| comment: '.'
@@ -42,10 +117,10 @@ data <- crossing(ID = ids, data)
 head(data)
 ```
 
-# RTTE Model
+## Read rtte.txt model file
 ```{r}
 #| comment: '.'
-mod <- mread("rtte.txt", end = -1)
+mod <- mread("mtime-rtte.txt", end = -1)
 
 set.seed(98765)
 out <- mrgsim(mod, data)
@@ -53,7 +128,7 @@ out <- mrgsim(mod, data)
 head(out)
 ```
 
-# Check event output
+## Check event output
 ```{r}
 #| comment: '.'
 
@@ -88,7 +163,7 @@ ggplot(xx, aes(x = DIFF)) +
   geom_histogram(color = "white")
 ```
 
-# Model code
+## Model code
 
 ```{r, eval = FALSE, code = mod@code}
 
